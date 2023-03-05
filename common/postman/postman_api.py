@@ -1,0 +1,160 @@
+from typing import Any, Callable
+
+
+class Postman:
+
+    def get(self,
+            url: str,
+            data: Any = None,
+            json: Any = None,
+            params: Any = None,
+            headers: Any = None,
+            cookies: Any = None,
+            files: Any = None,
+            auth: Any = None,
+            timeout: Any = None,
+            allow_redirects: bool = None,
+            proxies: Any = None,
+            hooks: Any = None,
+            stream: bool = None,
+            verify: Any = None,
+            cert: Any = None,
+            ):
+        raise NotImplementedError
+
+    def post(self,
+             url: str,
+             data: Any = None,
+             json: Any = None,
+             params: Any = None,
+             headers: Any = None,
+             cookies: Any = None,
+             files: Any = None,
+             auth: Any = None,
+             timeout: Any = None,
+             allow_redirects: bool = None,
+             proxies: Any = None,
+             hooks: Any = None,
+             stream: bool = None,
+             verify: Any = None,
+             cert: Any = None,
+             ):
+        raise NotImplementedError
+
+    def copy(self) -> 'Postman':
+        raise NotImplementedError
+
+    def get_meta_data(self, key=None) -> dict:
+        """
+        获取元信息，调用示例：
+        meta_data = postman.get_meta_data()
+        headers = meta_data.get('headers', None)
+        # or
+        headers = postman.get_meta_data('headers')
+        # or
+        headers = postman['headers']
+        """
+        raise NotImplementedError
+
+    def __getitem__(self, item):
+        return self.get_meta_data(item)
+
+    @classmethod
+    def create(cls, **kwargs):
+        raise NotImplementedError
+
+    def with_fix_url(self, url: str):
+        from .postman_proxy import FixUrlPostman
+        return FixUrlPostman(self, url)
+
+    def with_retry(self, retry_times, clazz=None):
+        if clazz is None:
+            from .postman_proxy import RetryPostman
+            clazz = RetryPostman
+
+        return clazz(self, retry_times)
+
+    def with_multi_part(self):
+        from .postman_proxy import MultiPartPostman
+        return MultiPartPostman(self)
+
+    def get_root_postman(self):
+        from .postman_proxy import PostmanProxy
+        if isinstance(self, PostmanProxy):
+            return self.postman.get_root_postman()
+        return self
+
+
+class AbstractPostman(Postman):
+
+    @classmethod
+    def create(cls, **kwargs):
+        return cls(kwargs)
+
+    def __init__(self, kwargs) -> None:
+        if not isinstance(kwargs, dict):
+            raise AssertionError('kwargs is not a dict')
+
+        self.meta_data: dict = kwargs
+
+    def get(self, url, **kwargs):
+        kwargs = self.before_request(kwargs)
+        return self.__get__()(url, **kwargs)
+
+    def post(self, url, **kwargs):
+        kwargs = self.before_request(kwargs)
+        return self.__post__()(url, **kwargs)
+
+    def __get__(self) -> Callable:
+        raise NotImplementedError
+
+    def __post__(self) -> Callable:
+        raise NotImplementedError
+
+    def before_request(self, kwargs):
+        return self.merge_kwargs(kwargs)
+
+    def merge_kwargs(self, kwargs):
+        """
+        把 kwargs 合并到 self.meta_data.copy()
+        """
+        ret = self.meta_data.copy()
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            ret[k] = v
+        return ret
+
+    def get_meta_data(self, key=None) -> dict:
+        if key is None:
+            return self.meta_data
+        else:
+            return self.meta_data.get(key, None)
+
+    def copy(self):
+        return self.__class__(self.meta_data.copy())
+
+
+class AbstractSessionPostman(AbstractPostman):
+
+    def __init__(self, kwargs: dict) -> None:
+        super().__init__(kwargs)
+
+        self.session = self.create_session(kwargs)
+        self.init = False
+
+    def create_session(self, kwargs):
+        raise NotImplementedError
+
+    def __get__(self):
+        return self.session.get
+
+    def __post__(self):
+        return self.session.post
+
+    def before_request(self, kwargs):
+        if self.init is False:
+            self.init = True
+            return super().before_request(kwargs)
+
+        return kwargs

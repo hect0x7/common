@@ -1,0 +1,4 @@
+/common.egg-info/
+/**/__pycache__/
+/.idea/
+/test/
