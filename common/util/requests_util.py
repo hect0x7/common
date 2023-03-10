@@ -2,18 +2,15 @@ from .typing_util import *
 from .json_util import LazyDictModel
 
 
-class RespData:
+class Resp:
 
     @classmethod
     def wrap(cls, resp):
-        if isinstance(resp, RespData):
+        if isinstance(resp, Resp):
             return resp
-        return RespData(resp)
+        return Resp(resp)
 
-    def __init__(self, resp: Response) -> None:
-        if not isinstance(resp, Response):
-            raise AssertionError(resp)
-
+    def __init__(self, resp) -> None:
         self.resp: Response = resp
         self._cache_to_json: Optional[Dict] = None
         self._cache_to_model: Optional[LazyDictModel] = None

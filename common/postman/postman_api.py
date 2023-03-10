@@ -44,24 +44,31 @@ class Postman:
     def copy(self) -> 'Postman':
         raise NotImplementedError
 
-    def get_meta_data(self, key=None) -> dict:
+    def get_meta_data(self, key=None, dv=None) -> dict:
         """
         获取元信息，调用示例：
         meta_data = postman.get_meta_data()
         headers = meta_data.get('headers', None)
         # or
-        headers = postman.get_meta_data('headers')
+        headers = postman.get_meta_data('headers', None)
         # or
-        headers = postman['headers']
+        headers = postman['headers'] or {}
         """
         raise NotImplementedError
 
     def __getitem__(self, item):
-        return self.get_meta_data(item)
+        return self.get_meta_data(item, None)
+
+    def __setitem__(self, key, value):
+        self.get_meta_data()[key] = value
 
     @classmethod
-    def create(cls, **kwargs):
-        raise NotImplementedError
+    def create(cls, clazz=None, **kwargs):
+        if clazz is None:
+            from .postman_impl import RequestsPostman
+            clazz = RequestsPostman
+
+        return clazz(kwargs)
 
     def with_fix_url(self, url: str):
         from .postman_proxy import FixUrlPostman
@@ -125,11 +132,11 @@ class AbstractPostman(Postman):
             ret[k] = v
         return ret
 
-    def get_meta_data(self, key=None) -> dict:
+    def get_meta_data(self, key=None, dv=None) -> dict:
         if key is None:
             return self.meta_data
         else:
-            return self.meta_data.get(key, None)
+            return self.meta_data.get(key, dv)
 
     def copy(self):
         return self.__class__(self.meta_data.copy())

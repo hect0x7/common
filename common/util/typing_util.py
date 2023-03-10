@@ -20,12 +20,9 @@ from re import compile, Match, Pattern
 
 # noinspection PyUnresolvedReferences
 from requests import RequestException, Response
+# noinspection PyUnresolvedReferences
+from requests_toolbelt import *
 
 StrNone = Optional[str]
 ListNone = Optional[List]
 DictNone = Optional[Dict]
-ReqResp = Response
-# Resp = Union[Response, tls_client.response.Response]
-# RespNone = Optional[Response]
-# MixResp = Union[TlsResp, ReqResp]
-# TlsResp = tls_client.response.Response

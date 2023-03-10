@@ -12,8 +12,8 @@ class PostmanProxy(Postman):
     def post(self, *args, **kwargs):
         return self.postman.post(*args, **kwargs)
 
-    def get_meta_data(self, key=None) -> dict:
-        return self.postman.get_meta_data(key)
+    def get_meta_data(self, key=None, dv=None) -> dict:
+        return self.postman.get_meta_data(key, dv)
 
     def copy(self):
         return self.__class__(self.postman.copy())

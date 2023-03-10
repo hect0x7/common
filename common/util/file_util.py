@@ -70,6 +70,15 @@ def of_file_suffix(filepath: str, trim_comma=False) -> str:
     return filepath[filepath.rfind(".") + trim_comma:]
 
 
+def of_file_mdate(f, fmt: str = "%Y-%m-%d %H:%M:%S"):
+    from .time_util import format_ts
+    return format_ts(os.path.getmtime(f), fmt)
+
+
+def of_file_size(f):
+    return os.path.getsize(f)
+
+
 def suffix_equal(fp1, fp2):
     return of_file_suffix(fp1) == of_file_suffix(fp2)
 
@@ -127,7 +136,7 @@ def create_file(filepath: str):
 
 
 def files_of_dir(abs_dir_path: str) -> List[str]:
-    abs_dir_path = fix_filepath(abs_dir_path)
+    abs_dir_path = fix_filepath(os.path.abspath(abs_dir_path))
     return [f'{abs_dir_path}{f_or_d}' for f_or_d in os.listdir(abs_dir_path)]
 
 

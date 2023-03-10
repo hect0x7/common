@@ -159,3 +159,8 @@ def parse_unicode_escape_text(text: str) -> str:
         return raw.group(0).encode('utf-8').decode('unicode_escape')
 
     return re.sub(r"\\u\w{4}", decode, text).replace(r"\/", "/")
+
+
+def traceback_print_exec():
+    import traceback
+    traceback.print_exc()

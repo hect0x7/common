@@ -33,10 +33,8 @@ class DictModel:
         return getattr(self, item)
 
 
-class LazyDictModel(DictModel):
+class LazyDictModel:
 
-    # noinspection PyMissingConstructor
-    # don't use super.__init__(data), because simple is better
     def __init__(self, data: dict):
         if data is None:
             raise AssertionError(f"data is None")
@@ -57,7 +55,7 @@ class LazyDictModel(DictModel):
         return self._data[item]
 
 
-def dict_2_obj(data: dict, lazy=True) -> DictModel:
+def dict_2_obj(data: dict, lazy=True) -> Union[DictModel, LazyDictModel]:
     return LazyDictModel(data) if lazy is True else DictModel(data)
 
 
