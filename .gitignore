@@ -1,0 +1,4 @@
+/src/dist/
+/**/__pycache__/
+/.idea/
+/test/
