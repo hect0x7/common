@@ -114,7 +114,7 @@ def print_sep(text='-', length=70):
     print(''.center(length, text))
 
 
-def print_eye_catching(text: str, need_to_confirm=False, surround='\n', multiple=1, key=None):
+def print_eye_catching(text, need_to_confirm=False, surround='\n', multiple=1, key=None):
     if need_to_confirm is True:
         ApplicationMessageCenter.append_msg(text, key)
     margin = surround * multiple

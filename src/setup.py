@@ -7,7 +7,17 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = "\n" + f.read()
 
-VERSION = '0.4.7'
+VERSION = None
+with open(os.path.join(here, './common/__init__.py')) as f:
+    for line in f:
+        if line.startswith("VERSION"):
+            VERSION = line[line.index("'") + 1: line.rindex("'")]
+            break
+
+if VERSION is None:
+    print('Set VERSION first!')
+    exit(1)
+
 DESCRIPTION = 'python common toolkit'
 
 setup(
@@ -35,4 +45,5 @@ setup(
         "Operating System :: Microsoft :: Windows",
     ],
     author_email='93357912+hect0x7@users.noreply.github.com',
+    url='https://github.com/hect0x7/common',
 )

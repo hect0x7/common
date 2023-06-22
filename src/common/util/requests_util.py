@@ -4,7 +4,7 @@ from .json_util import DictModel
 
 class ProxyBuilder:
     proxy_protocols = ['https', 'http']
-    addr_f = 'http://{}:{}'
+    addr_f = '{}:{}'
 
     @classmethod
     def build_proxy(cls, address):
@@ -25,7 +25,12 @@ class ProxyBuilder:
         :param text: 127.0.0.1:1234 / clash / v2ray
         """
         proxy = getattr(cls, text + '_proxy', None)
-        return proxy() or cls.build_proxy(text)
+        if proxy is None:
+            # 127.0.0.1:1234
+            return cls.build_proxy(text)
+        else:
+            # clash_proxy
+            return proxy()
 
     v2Ray_proxy = v2ray_proxy
 

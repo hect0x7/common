@@ -54,7 +54,7 @@ class TslClientSessionPostman(AbstractSessionPostman):
         return meta_data
 
 
-class CffiPostman(AbstractPostman):
+class CurlCffiPostman(AbstractPostman):
 
     def __init__(self, kwargs) -> None:
         super().__init__(kwargs)
@@ -68,7 +68,7 @@ class CffiPostman(AbstractPostman):
         return requests.post
 
 
-class CffiSessionPostman(AbstractSessionPostman):
+class CurlCffiSessionPostman(AbstractSessionPostman):
 
     def create_session(self, kwargs):
         return self.new_cffi_session(kwargs)
@@ -84,8 +84,8 @@ class CffiSessionPostman(AbstractSessionPostman):
 
 # help typing
 PostmanImplClazz = Union[
-    Type[CffiPostman],
-    Type[CffiSessionPostman],
+    Type[CurlCffiPostman],
+    Type[CurlCffiSessionPostman],
     Type[RequestsPostman],
     Type[RequestsSessionPostman],
     Type[TslClientSessionPostman],
@@ -96,13 +96,23 @@ class Postmans:
     postman_impl_class_dict: Dict[str, PostmanImplClazz] = {
         'requests': RequestsPostman,
         'requests_Session': RequestsSessionPostman,
-        'cffi': CffiPostman,
-        'cffi_Session': CffiSessionPostman,
+        'cffi': CurlCffiPostman,
+        'cffi_Session': CurlCffiSessionPostman,
+        'curl_cffi': CurlCffiPostman,
+        'curl_cffi_Session': CurlCffiSessionPostman,
     }
 
     @classmethod
     def get_impl_clazz(cls, key='requests') -> PostmanImplClazz:
         return cls.postman_impl_class_dict[key]
+
+    @classmethod
+    def new_session(cls, **kwargs):
+        return cls.get_impl_clazz('curl_cffi_Session').create(**kwargs)
+
+    @classmethod
+    def new_postman(cls, **kwargs):
+        return cls.get_impl_clazz('curl_cffi').create(**kwargs)
 
     @classmethod
     def create(cls,
@@ -139,9 +149,19 @@ class Postmans:
 
             meta_data[key] = ProxyBuilder.build_by_str(proxies)
 
-        def impltype_handler(self, data: dict, key='type'):
-            impl_clazz = Postmans.get_impl_clazz(data.get(key, 'requests'))
-            return impl_clazz(data.get('meta_data', {}))
+        def impltype_handler(self,
+                             dsl_data: dict,
+                             __default_cname__='requests',
+                             ):
+            meta_data = dsl_data.setdefault('meta_data', {})
+            impl_type = dsl_data.get('type', __default_cname__)
+
+            # fix wrong config, but not a good solution
+            if impl_type.startswith(__default_cname__) and 'impersonate' in meta_data:
+                meta_data.pop('impersonate')
+
+            clazz = Postmans.get_impl_clazz(impl_type)
+            return clazz(meta_data)
 
         def build_postman(self, data):
             for handler in self.dsl_handler_list:
