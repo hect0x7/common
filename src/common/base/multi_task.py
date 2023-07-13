@@ -254,3 +254,36 @@ def multi_call(func, iter_objs, launcher=multi_thread_launcher, wait=True) -> Un
         return ret_dict, task_ls
 
     return ret_dict
+
+
+"""
+提供阻塞获取一个线程的target函数返回值
+"""
+
+
+class CacheRunner(Thread):
+
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, *, daemon=None):
+        super().__init__(group, self.deco_target(target), name, args, kwargs, daemon=daemon)
+        self._cache = None
+
+    def get(self) -> 'CacheRunner':
+        cache = self._cache
+
+        if cache is not None:
+            return cache
+
+        if not self.is_alive():
+            self.start()
+
+        self.join()
+        return self._cache
+
+    def deco_target(self, target):
+
+        def deco_cache():
+            result = target()
+            self._cache = result
+
+        return deco_cache
