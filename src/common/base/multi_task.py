@@ -268,7 +268,7 @@ class CacheRunner(Thread):
         super().__init__(group, self.deco_target(target), name, args, kwargs, daemon=daemon)
         self._cache = None
 
-    def get(self) -> 'CacheRunner':
+    def get(self) -> Any:
         cache = self._cache
 
         if cache is not None:
@@ -287,3 +287,12 @@ class CacheRunner(Thread):
             self._cache = result
 
         return deco_cache
+
+    def __call__(self, *args, **kwargs):
+        return self.get()
+
+
+def cache_run(func) -> CacheRunner:
+    cache_runner = CacheRunner(target=func)
+    cache_runner.start()
+    return cache_runner
