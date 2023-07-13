@@ -1,0 +1,45 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/workflows/*.yml'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: 构建模块
+        run: |
+          ./build_and_upload.bat
+
+      - name: 发布PYPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_COMMONX }}
+
+      - name: 提取Commit信息
+        id: extract
+        run: |
+          commit_message=$(git log --format=%B -n 1 ${{ github.sha }})
+          version=$(echo $commit_message | grep -oP '(?<=publish\s)\S+' | tr -d ':')
+          details=$(echo $commit_message | grep -oP '(?<=:\s).*')
+          echo "::set-output name=version::$version"
+          echo "::set-output name=details::$details"
+
+      - name: 创建新的Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.extract.outputs.version }}
+          release_name: ${{ steps.extract.outputs.version }}
+          body: ${{ steps.extract.outputs.details }}
