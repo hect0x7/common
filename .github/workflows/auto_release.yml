@@ -10,6 +10,7 @@ jobs:
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'publish:')
 
     steps:
       - name: Checkout Code
@@ -33,8 +34,8 @@ jobs:
           commit_message=$(git log --format=%B -n 1 ${{ github.sha }})
           version=$(echo $commit_message | grep -oP '(?<=publish\s)\S+' | tr -d ':')
           details=$(echo $commit_message | grep -oP '(?<=:\s).*')
-          echo "::set-output name=version::$version"
-          echo "::set-output name=details::$details"
+          echo "{version}={$version}" >> $GITHUB_OUTPUT
+          echo "{details}={$details}" >> $GITHUB_OUTPUT
 
       - name: 创建新的Release
         id: create_release
