@@ -292,7 +292,7 @@ class CacheRunner(Thread):
         return self.get()
 
 
-def cache_run(func) -> CacheRunner:
+def cache_async_run(func) -> CacheRunner:
     cache_runner = CacheRunner(target=func)
     cache_runner.start()
     return cache_runner

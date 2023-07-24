@@ -3,11 +3,11 @@ from .packer import PackerUtil
 
 
 class SaveableEntity:
-    when_del_save_file = True
-    after_save_print_info = True
+    __when_del_save_file__ = False
+    __after_save_print_info__ = False
 
     def __del__(self):
-        if self.when_del_save_file is not True:
+        if self.__when_del_save_file__ is not True:
             return
 
         filepath = f"{fix_filepath(self.save_base_dir(), is_dir=True)}" \
@@ -23,13 +23,13 @@ class SaveableEntity:
 
     def save_to_file(self, filepath):
         PackerUtil.pack(self, filepath)
-        if self.after_save_print_info is True:
+        if self.__after_save_print_info__ is True:
             print(f"[{current_thread().name}]保存文件: {filepath}")
 
 
 class IterableEntity:
-    cache_getitem_result = False
-    cache_field_name = 'IterableEntity_cache_items_dict'
+    __cache_getitem_result__ = True
+    __cache_field_name__ = 'IterableEntity_cache_items_dict'
 
     def __getitem__(self, item):
         raise NotImplementedError
@@ -43,10 +43,10 @@ class IterableEntity:
 
     def getitem(self, item):
         # 不使用缓存
-        if self.cache_getitem_result is False:
+        if self.__cache_getitem_result__ is False:
             return self.__getitem__(item)
         else:
-            field_name = self.cache_field_name
+            field_name = self.__cache_field_name__
 
             # 缓存还没有创建
             if not hasattr(self, field_name):

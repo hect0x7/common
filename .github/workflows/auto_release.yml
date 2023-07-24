@@ -1,11 +1,10 @@
 name: Auto Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
-    paths-ignore:
-      - '.github/workflows/*.yml'
 
 jobs:
   create-release:
@@ -14,15 +13,18 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 构建模块
         run: |
-          ./build_and_upload.bat
+          cd ./src
+          python -m pip install build
+          python -m build
 
       - name: 发布PYPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          packages-dir: src/dist/
           password: ${{ secrets.PYPI_COMMONX }}
 
       - name: 提取Commit信息

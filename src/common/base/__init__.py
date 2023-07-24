@@ -6,7 +6,7 @@ from .multi_task import MultiTaskLauncher, \
     multi_process_launcher, thread_pool_executor, \
     wait_a_task, wait_tasks, \
     multi_task_launcher_batch, multi_call, \
-    CacheRunner, cache_run
+    CacheRunner, cache_async_run
 from .entity import SaveableEntity, IterableEntity
 from .registry import AtexitRegistry, ThreadRegistry
 from .mapper import Mapper, MapperFactory
