@@ -10,7 +10,7 @@ jobs:
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, 'publish:')
+    if: startsWith(github.event.head_commit.message, 'publish')
 
     steps:
       - name: Checkout Code

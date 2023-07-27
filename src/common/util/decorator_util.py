@@ -92,4 +92,18 @@ def cache(
     return wrapper
 
 
-enable_cache = cache
+def field_cache(field_name, miss=None):
+    def wrapper(func):
+        def func_exec(*args, **kwargs):
+            obj = args[0]
+            attr = getattr(obj, field_name, None)
+            if attr != miss:
+                return attr
+
+            attr = func(*args, **kwargs)
+            setattr(obj, field_name, attr)
+            return attr
+
+        return func_exec
+
+    return wrapper
