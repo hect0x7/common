@@ -46,12 +46,6 @@ def current_thread():
     return current_thread()
 
 
-def copy_obj(obj):
-    if obj is None:
-        return None
-    return obj.copy()
-
-
 def pause_console():
     import os
     os.system("pause")

@@ -1,9 +1,6 @@
-import os
-
-from PIL import Image
-
-
 def merge_images(folder_path, limit=None, delete_org_file=True, suffix='.webp'):
+    import os
+    from PIL import Image
     # 获取文件夹名称
     folder_name = os.path.basename(folder_path)
 
@@ -65,6 +62,8 @@ def merge_images(folder_path, limit=None, delete_org_file=True, suffix='.webp'):
 
 
 def convert_images_to_jpg(folder_path, delete_org_file=True):
+    import os
+    from PIL import Image
     for root, dirs, files in os.walk(folder_path):
         for filename in files:
             # 检查文件扩展名是否为图片格式

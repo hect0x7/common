@@ -89,6 +89,9 @@ class RetryPostman(PostmanProxy):
     def tip_retrying(self, time, _request, url, kwargs):
         pass
 
+    def copy(self):
+        return self.__class__(self.postman.copy(), self.retry_times)
+
 
 class MultiPartPostman(PostmanProxy):
 
@@ -121,6 +124,9 @@ class WrapRespPostman(PostmanProxy):
 
     def post(self, *args, **kwargs):
         return self.WrapResp(super().post(*args, **kwargs))
+
+    def copy(self):
+        return self.__class__(self.postman.copy(), self.WrapResp)
 
 
 # noinspection PyMethodMayBeStatic
