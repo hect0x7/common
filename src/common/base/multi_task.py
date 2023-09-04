@@ -293,6 +293,6 @@ class CacheRunner(Thread):
 
 
 def cache_async_run(func) -> CacheRunner:
-    cache_runner = CacheRunner(target=func)
+    cache_runner = CacheRunner(target=func, daemon=True)
     cache_runner.start()
     return cache_runner

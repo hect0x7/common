@@ -24,48 +24,18 @@ class RequestsSessionPostman(AbstractSessionPostman):
         return session
 
 
-class TslClientSessionPostman(AbstractSessionPostman):
-    tls_client_rename_kwargs = {
-        'proxies': 'proxy',
-        'timeout': 'timeout_seconds'
-    }
-
-    def __init__(self, kwargs: dict) -> None:
-        super().__init__(self.fix_meta_data(kwargs))
-
-    def create_session(self, kwargs):
-        return self.new_tls_client_Session()
-
-    def before_request(self, kwargs):
-        kwargs = self.fix_meta_data(kwargs)
-        return super().before_request(kwargs)
-
-    def new_tls_client_Session(self):
-        # import tls_client.response
-        # Session = tls_client.Session
-        # TlsResp = tls_client.response.Response
-        # return self.Session('chrome_109')
-        raise NotImplementedError('已移除对 tls_client 的支持')
-
-    def fix_meta_data(self, meta_data):
-        for k, v in self.tls_client_rename_kwargs.items():
-            if k in meta_data:
-                meta_data[v] = meta_data.pop(k)
-        return meta_data
-
-
 class CurlCffiPostman(AbstractPostman):
 
     def __init__(self, kwargs) -> None:
         super().__init__(kwargs)
 
     def __get__(self):
-        from curl_cffi import requests
-        return requests.get
+        from curl_cffi.requests import get
+        return get
 
     def __post__(self):
-        from curl_cffi import requests
-        return requests.post
+        from curl_cffi.requests import post
+        return post
 
 
 class CurlCffiSessionPostman(AbstractSessionPostman):
@@ -88,7 +58,6 @@ PostmanImplClazz = Union[
     Type[CurlCffiSessionPostman],
     Type[RequestsPostman],
     Type[RequestsSessionPostman],
-    Type[TslClientSessionPostman],
 ]
 
 
