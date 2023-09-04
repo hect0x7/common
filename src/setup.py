@@ -29,11 +29,6 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     requires=[
-        "requests",
-        "requests_toolbelt",
-        "PyYAML",
-        "pyperclip",
-        "curl_cffi",
     ],
     keywords=['python', 'toolkit', 'postman'],
     classifiers=[
