@@ -9,7 +9,41 @@ json_dumps = dumps
 json_dump = dump
 
 
-class DictModel:
+class EasyAccessDict:
+    """
+    更方便读取dict的类
+    dic['a']['b']['c'] -> obj.a.b.c
+    """
+
+    def __init__(self, data: dict):
+        self.init_data(data)
+
+    def init_data(self, data):
+        for k, v in data.items():
+            if k is None:
+                continue
+            if isinstance(v, (list, tuple)):
+                setattr(self, k, [self.__class__(e) if isinstance(e, dict) else e for e in v])
+            else:
+                setattr(self, k, self.__class__(v) if isinstance(v, dict) else v)
+
+    def __getitem__(self, item):
+        """
+        dict_model['aaa'] ---> dict_model.__getitem__('aaa')
+        """
+        if not isinstance(item, str):
+            raise NotImplementedError(f"item: {item} ({type(item)})")
+
+        return getattr(self, item)
+
+
+class AdvancedEasyAccessDict:
+    """
+    对EasyAccessDict功能的增强
+    1. 支持懒加载，性能更好开销更小（相比EAD初始化即加载所有键值的方式）
+    2. 支持当作dict来用，可以达到无感知的兼容效果
+    3. 支持拿到原始dict
+    """
 
     def __init__(self, data: dict):
         if data is None:
@@ -27,22 +61,29 @@ class DictModel:
         setattr(self, item, v)
         return v
 
-    def __getitem__(self, item):
-        return self._data[item]
-
-    def __contains__(self, item):
-        return item in self._data
+    # 原始dict
 
     @property
     def src_dict(self):
         return self._data
 
+    # 模拟dict的方法
+
+    def __contains__(self, item):
+        return item in self._data
+
+    def __getitem__(self, item):
+        return self._data[item]
+
     def get(self, *args, **kwargs):
         return self._data.get(*args, **kwargs)
 
+    def items(self):
+        return self._data.items()
 
-def dict_2_obj(data: dict):
-    return DictModel(data)
+
+# 兼容旧版本
+DictModel = AdvancedEasyAccessDict
 
 
 def json_loadf(filepath,
