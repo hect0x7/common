@@ -20,6 +20,22 @@ class ProxyBuilder:
         return cls.build_proxy(cls.addr_f.format(ip, port))
 
     @classmethod
+    def system_proxy(cls):
+        import urllib.request
+        proxies: dict = urllib.request.getproxies()
+        if len(proxies) == 0:
+            return {}
+
+        # extract ip and port from proxies dict
+        addr: str = proxies.popitem()[1]
+        prot = '://'
+        index = addr.find(prot)
+        if prot in addr:
+            addr = addr[index + len(prot):]
+
+        return cls.build_proxy(addr)
+
+    @classmethod
     def build_by_str(cls, text):
         """
         :param text: 127.0.0.1:1234 / clash / v2ray

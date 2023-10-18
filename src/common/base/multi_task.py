@@ -265,7 +265,7 @@ class CacheRunner(Thread):
 
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs=None, *, daemon=None):
-        super().__init__(group, self.deco_target(target), name, args, kwargs, daemon=daemon)
+        super().__init__(group, self.deco_target(target, args, kwargs), name, args, kwargs, daemon=daemon)
         self._cache = None
 
     def get(self) -> Any:
@@ -280,10 +280,11 @@ class CacheRunner(Thread):
         self.join()
         return self._cache
 
-    def deco_target(self, target):
-
+    def deco_target(self, target, args, kwargs):
+        if kwargs is None:
+            kwargs = {}
         def deco_cache():
-            result = target()
+            result = target(*args, **kwargs)
             self._cache = result
 
         return deco_cache
