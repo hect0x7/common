@@ -9,6 +9,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'v')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -26,14 +27,12 @@ jobs:
           python release.py "$commit_message"
 
       - name: 创建新的Release
-        id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.extract.outputs.version }}
-          release_name: ${{ steps.extract.outputs.version }}
-          body: ${{ steps.extract.outputs.details }}
+          tag_name: ${{ steps.extract.outputs.tag }}
+          body: ${{ steps.extract.outputs.body }}
 
       - name: 发布PYPI
         uses: pypa/gh-action-pypi-publish@release/v1
