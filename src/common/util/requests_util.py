@@ -237,3 +237,16 @@ class CommonResp(IResp):
 
     def model(self) -> DictModel:
         raise NotImplementedError
+
+
+def get_chrome_cookies(safe=True):
+    try:
+        import browser_cookie3
+        cookies = browser_cookie3.chrome(domain_name='.bilibili.com')
+        cdict = {c.name: c.value for c in cookies}
+        return cdict, cookies
+    except BaseException as e:
+        if safe:
+            return None, None
+        else:
+            raise e
