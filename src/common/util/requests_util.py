@@ -239,14 +239,18 @@ class CommonResp(IResp):
         raise NotImplementedError
 
 
-def get_chrome_cookies(safe=True):
+def get_browser_cookies(browser: str, safe=False):
+    if not browser:
+        raise ValueError('browser参数不能为空')
+
     try:
         import browser_cookie3
-        cookies = browser_cookie3.chrome(domain_name='.bilibili.com')
+
+        cookies = getattr(browser_cookie3, browser)(domain_name='.bilibili.com')
         cdict = {c.name: c.value for c in cookies}
         return cdict, cookies
     except BaseException as e:
         if safe:
-            return None, None
+            return None, e
         else:
             raise e
