@@ -182,19 +182,12 @@ def thread_pool_executor(
         wait_finish=True,
         max_workers=None,
 ):
-    def wrap_func(*args, **kwargs):
-        try:
-            apply_each_obj_func(*args, **kwargs)
-        except Exception:
-            from common import traceback_print_exec
-            traceback_print_exec()
-
     ret = []
     from concurrent.futures import ThreadPoolExecutor
     executor = ThreadPoolExecutor(max_workers)
     for obj in iter_objs:
         args, kwargs = process_single_arg_to_args_and_kwargs(obj)
-        future = executor.submit(wrap_func, *args, **kwargs)
+        future = executor.submit(apply_each_obj_func, *args, **kwargs)
         ret.append(future)
 
     executor.shutdown(wait_finish)
