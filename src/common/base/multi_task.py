@@ -290,3 +290,22 @@ def cache_async_run(func) -> CacheRunner:
     cache_runner = CacheRunner(target=func, daemon=True)
     cache_runner.start()
     return cache_runner
+
+
+def invoke_all(args_func_list: List[Tuple], wait=True, executor=None):
+    if executor is None:
+        from concurrent.futures import ThreadPoolExecutor
+        executor = ThreadPoolExecutor()
+
+    future_ls = []
+    for args, func in args_func_list:
+        args, kwargs = process_single_arg_to_args_and_kwargs(args)
+        future = executor.submit(func, *args, **kwargs)
+        future_ls.append(future)
+
+    executor.shutdown(wait)
+
+    if wait:
+        return [f.result() for f in future_ls]
+    else:
+        return future_ls
