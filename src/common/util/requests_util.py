@@ -239,7 +239,7 @@ class CommonResp(IResp):
         raise NotImplementedError
 
 
-def get_browser_cookies(browser: str, domain: str, safe=False):
+def get_browser_cookies(browser: str, domain, safe=False):
     if not browser:
         raise ValueError('browser参数不能为空')
 

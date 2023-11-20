@@ -60,7 +60,7 @@ class Postman:
         raise NotImplementedError
 
     def __getitem__(self, item):
-        return self.get_meta_data(item, None)
+        return self.get_meta_data()[item]
 
     def __setitem__(self, key, value):
         self.get_meta_data()[key] = value
