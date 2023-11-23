@@ -37,71 +37,31 @@ def disable(_func):
     return do_nothing_func
 
 
-class SimpleCacheWrapper:
+def field_cache(field_name=None, sentinel=None, obj=None):
+    """
 
-    def __init__(self, func, cache_dict, cache_miss_msg, cache_hit_msg):
-        self.func = func
-        if cache_dict is None:
-            cache_dict = {}
+    :param field_name: field name of obj
+    :param sentinel: unique object used to signal cache misses
+    :param obj: cache field holder
+    """
 
-        self.cache_dict = cache_dict
-        self.cache_miss_msg = cache_miss_msg
-        self.cache_hit_msg = cache_hit_msg
-
-    def key(self, args: tuple, kwargs: dict):
-        return str(args) + str(kwargs)
-
-    def invoke(self, args, kwargs):
-        return self.func(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        key = self.key(args, kwargs)
-        cache_dict = self.cache_dict
-
-        if key in cache_dict:
-            # cache hit
-            value = cache_dict[key]
-            self.hit_callback(key, value)
-        else:
-            # cache miss
-            value = self.invoke(args, kwargs)
-            self.miss_callback(key, value)
-            cache_dict[key] = value
-
-        return value
-
-    def miss_callback(self, key, value):
-        miss_msg = self.cache_miss_msg
-        if miss_msg is not None:
-            print(miss_msg.format(key, value))
-
-    def hit_callback(self, key, value):
-        hit_msg = self.cache_hit_msg
-        if hit_msg is not None:
-            print(hit_msg.format(key, value))
-
-
-def cache(
-        cache_dict=None,
-        cache_hit_msg=None,
-        cache_miss_msg=None,
-):
     def wrapper(func):
-        return SimpleCacheWrapper(func, cache_dict, cache_miss_msg, cache_hit_msg)
+        nonlocal field_name
+        if field_name is None:
+            field_name = '__cache_{}__'.format(func.__name__)
 
-    return wrapper
-
-
-def field_cache(field_name, miss=None):
-    def wrapper(func):
         def func_exec(*args, **kwargs):
-            obj = args[0]
-            attr = getattr(obj, field_name, None)
-            if attr != miss:
+            if obj is None:
+                target = args[0]
+            else:
+                target = obj
+
+            attr = getattr(target, field_name, sentinel)
+            if attr is not sentinel:
                 return attr
 
             attr = func(*args, **kwargs)
-            setattr(obj, field_name, attr)
+            setattr(target, field_name, attr)
             return attr
 
         return func_exec

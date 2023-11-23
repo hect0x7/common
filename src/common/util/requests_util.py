@@ -20,6 +20,10 @@ class ProxyBuilder:
         return cls.build_proxy(cls.addr_f.format(ip, port))
 
     @classmethod
+    def fiddler_proxy(cls, ip='127.0.0.1', port='8888'):
+        return cls.build_proxy(cls.addr_f.format(ip, port))
+
+    @classmethod
     def system_proxy(cls):
         import urllib.request
         proxies: dict = urllib.request.getproxies()
@@ -106,30 +110,6 @@ def print_resp_json(resp, indent=2):
     json_str = json_dumps(resp.json(), indent=indent)
     from .sys_util import parse_unicode_escape_text
     print(parse_unicode_escape_text(json_str))
-
-
-def WebKit_format(data, boundary="----WebKitFormBoundary*********ABC", headers=None):
-    # 从headers中提取boundary信息
-    if headers is None:
-        headers = {}
-    if "content-type" in headers:
-        fd_val = str(headers["content-type"])
-        if "boundary" in fd_val:
-            fd_val = fd_val.split(";")[1].strip()
-            boundary = fd_val.split("=")[1].strip()
-        else:
-            raise Exception("multipart/form-data头信息错误，请检查content-type key是否包含boundary")
-    # form-data格式定式
-    jion_str = '--{}\r\nContent-Disposition: form-data; name="{}"\r\n\r\n{}\r\n'
-    end_str = "--{}--".format(boundary)
-    args_str = ""
-    if not isinstance(data, dict):
-        raise Exception("multipart/form-data参数错误，data参数应为dict类型")
-    for key, value in data.items():
-        args_str += jion_str.format(boundary, key, value)
-    args_str += end_str.format(boundary)
-    args_str = args_str.replace("\'", "\"")
-    return args_str
 
 
 class IResp:

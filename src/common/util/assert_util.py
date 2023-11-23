@@ -51,20 +51,7 @@ class Asserter:
         args, kwargs = process_args_kwargs(args, kwargs)
         func(*args, **kwargs)
 
-    @staticmethod
-    def pattern_search(p: Pattern,
-                       text: str,
-                       index=0,
-                       no_match_msg='无法匹配',
-                       ):
-        match = p.search(text)
-        if match is None:
-            raise AssertionError(no_match_msg)
-        else:
-            return match[index]
-
 
 any_match = Asserter.any_match
 assert_equal = Asserter.assert_equal
 require_not_empty = Asserter.require_not_empty
-pattern_search = Asserter.pattern_search
