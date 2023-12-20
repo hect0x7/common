@@ -4,23 +4,6 @@ from common import Thread, Process, \
     is_function, sleep, current_thread
 
 
-def wait_a_task(task):
-    if task == current_thread():
-        return
-
-    while task.is_alive():
-        task.join(timeout=1)
-
-
-def wait_tasks(tasks: Iterable[Any]):
-    for task in tasks:
-        if isinstance(task, list):
-            wait_tasks(task)
-            continue
-
-        wait_a_task(task)
-
-
 class MultiTaskLauncher:
     OptionalTask = Union[Thread, Process, None]
 
@@ -51,7 +34,7 @@ class MultiTaskLauncher:
             self.task_ls.append(task)
 
     def wait_finish(self):
-        wait_tasks(self.task_ls)
+        self.wait_tasks(self.task_ls)
 
     """
     收集所有的 Task
@@ -95,6 +78,23 @@ class MultiTaskLauncher:
     def build_daemon(cls):
         return MultiTaskLauncher({"daemon": True})
 
+    @classmethod
+    def wait_a_task(cls, task):
+        if task == current_thread():
+            return
+
+        while task.is_alive():
+            task.join(timeout=1)
+
+    @classmethod
+    def wait_tasks(cls, tasks: Iterable[Any]):
+        for task in tasks:
+            if isinstance(task, list):
+                cls.wait_tasks(task)
+                continue
+
+            cls.wait_a_task(task)
+
 
 def multi_task_launcher(iter_objs: Iterable,
                         apply_each_obj_func: Callable,
@@ -137,7 +137,7 @@ def multi_task_launcher(iter_objs: Iterable,
         MultiTaskLauncher.sleep_with_condition(sleep_interval, index + 1, obj)
 
     if wait_finish is True:
-        wait_tasks(task_ls)
+        MultiTaskLauncher.wait_tasks(task_ls)
 
     return task_ls
 
@@ -219,13 +219,13 @@ def multi_task_launcher_batch(iter_objs: Iterable,
         task_ls.append(task)
 
         if len(task_ls) == batch_size:
-            wait_tasks(task_ls)
+            MultiTaskLauncher.wait_tasks(task_ls)
             task_ls.clear()
 
         MultiTaskLauncher.sleep_with_condition(sleep_interval, index + 1, obj)
 
     if task_ls:
-        wait_tasks(task_ls)
+        MultiTaskLauncher.wait_tasks(task_ls)
 
     return task_ls
 
@@ -276,6 +276,7 @@ class CacheRunner(Thread):
     def deco_target(self, target, args, kwargs):
         if kwargs is None:
             kwargs = {}
+
         def deco_cache():
             result = target(*args, **kwargs)
             self._cache = result

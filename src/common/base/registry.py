@@ -1,5 +1,5 @@
 from common import Dict, List, Thread, current_thread, atexit_register, atexit_unregister
-from .multi_task import wait_a_task
+from .multi_task import MultiTaskLauncher
 
 
 class ThreadRegistry:
@@ -36,7 +36,7 @@ class ThreadRegistry:
                 if finish_message is not None:
                     print(finish_message)
                 if wait_finish is True:
-                    wait_a_task(thread)
+                    MultiTaskLauncher.wait_a_task(thread)
 
         return thread_ls
 

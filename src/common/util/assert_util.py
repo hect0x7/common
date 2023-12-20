@@ -25,7 +25,7 @@ class Asserter:
 
     @staticmethod
     def any_match(raw,
-                  accepted: list,
+                  accepted: Iterable,
                   ret_when_false=None,
                   callback_when_true=None,
                   args=None,

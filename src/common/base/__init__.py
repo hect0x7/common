@@ -4,7 +4,6 @@ from .packer import Packer, JsonPacker, YmlPacker, PicklePacker, \
 from .multi_task import MultiTaskLauncher, \
     multi_task_launcher, multi_thread_launcher, \
     multi_process_launcher, thread_pool_executor, \
-    wait_a_task, wait_tasks, \
     multi_task_launcher_batch, multi_call, \
     CacheRunner, cache_async_run, invoke_all
 from .registry import AtexitRegistry, ThreadRegistry
