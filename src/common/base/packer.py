@@ -178,4 +178,4 @@ class PackerUtil:
     @classmethod
     def unpack_by_str(cls, text, mode, clazz=None) -> Tuple[Any, Packer]:
         packer = cls.get_packer(mode)
-        return packer.unpack_by_str(text, clazz)
+        return packer.unpack_by_str(text, clazz), packer
