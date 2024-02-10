@@ -1,4 +1,4 @@
-from common import Callable, Type, Dict, Union, Optional, Any, Tuple
+from typing import Callable, Type, Dict, Optional, Any, Tuple
 
 
 class Packer:
@@ -17,8 +17,11 @@ class Packer:
         """
         raise NotImplementedError
 
+    def unpack_by_str(self, text: str, clazz=None) -> Any:
+        raise NotImplementedError
 
-class AbstractSerializablePacker(Packer):
+
+class AbstractPacker(Packer):
     pack_mode = 'w'
     unpack_mode = 'r'
     encoding = 'utf-8'
@@ -54,7 +57,11 @@ class AbstractSerializablePacker(Packer):
             return visitor(f, **kwargs)
 
 
-class YmlPacker(AbstractSerializablePacker):
+class YmlPacker(AbstractPacker):
+
+    def unpack_by_str(self, text: str, clazz=None) -> Any:
+        import yaml
+        return yaml.load(text, yaml.FullLoader)
 
     def dump(self, fp, obj):
         import yaml
@@ -74,7 +81,11 @@ class YmlPacker(AbstractSerializablePacker):
         add_constructor(tag, constructor)
 
 
-class JsonPacker(AbstractSerializablePacker):
+class JsonPacker(AbstractPacker):
+
+    def unpack_by_str(self, text: str, clazz=None) -> Any:
+        from json import loads
+        return loads(text)
 
     def dump(self, fp, obj, indent=2):
         from json import dump
@@ -96,7 +107,9 @@ class JsonPacker(AbstractSerializablePacker):
 
     @classmethod
     def to_dict(cls, obj):
-        """将对象转换为字典"""
+        """
+        将对象转换为字典
+        """
         if hasattr(obj, "__dict__"):
             d = dict(obj.__dict__)
             for key, value in d.items():
@@ -109,7 +122,7 @@ class JsonPacker(AbstractSerializablePacker):
             return obj
 
 
-class PicklePacker(AbstractSerializablePacker):
+class PicklePacker(AbstractPacker):
     pack_mode = 'wb'
     unpack_mode = 'rb'
     encoding = None
@@ -122,13 +135,16 @@ class PicklePacker(AbstractSerializablePacker):
         import pickle
         return pickle.load(fp)
 
+    def unpack_by_str(self, text: str, clazz=None) -> Any:
+        raise NotImplementedError('unsupported')
 
-class PackerFactory:
+
+class PackerUtil:
     mode_yml = 'yml'
     mode_json = 'json'
     mode_py_pickle = 'pickle'
 
-    mode_mapping: Dict[str, Union[Packer, Type[Packer]]] = {
+    mode_mapping: Dict[str, Type[Packer]] = {
         mode_yml: YmlPacker,
         mode_json: JsonPacker,
         mode_py_pickle: PicklePacker,
@@ -137,44 +153,29 @@ class PackerFactory:
 
     @classmethod
     def get_packer(cls, mode: str) -> Packer:
-        packer_caller = cls.mode_mapping.get(mode, None)
+        packer: Type[Packer] = cls.mode_mapping.get(mode, None)
 
-        if packer_caller is None:
+        if packer is None:
             raise AssertionError(f"unknown mode: '{mode}', acceptable modes={list(cls.mode_mapping.keys())}")
 
-        packer: Packer
-        if isinstance(packer_caller, Packer):
-            packer_caller: Packer
-            packer = packer_caller
-        else:
-            packer_caller: Type[Packer]
-            packer = packer_caller()
-            # cache
-            cls.mode_mapping[mode] = packer
-
-        return packer
-
-
-class PackerUtil:
-
-    @staticmethod
-    def get_packer(filepath: str):
-        mode_intelligent = filepath[filepath.rfind('.') + 1::]
-        return PackerFactory.get_packer(mode=mode_intelligent)
+        return packer()
 
     @classmethod
-    def pack(cls, obj: object, filepath: str, packer=None, only_fields=False):
-        packer = packer or cls.get_packer(filepath)
+    def decide_packer(cls, filepath: str) -> Packer:
+        from common import of_file_suffix
+        return cls.get_packer(of_file_suffix(filepath, trim_comma=True))
 
-        # 只序列化类属性
-        if only_fields is True:
-            import inspect
-            obj = inspect.getmembers(obj, lambda f: not inspect.ismethod(f))
-            obj = dict(filter(lambda f: not f[0].startswith('_'), obj))
-
+    @classmethod
+    def pack(cls, obj: object, filepath: str, packer=None):
+        packer = packer or cls.decide_packer(filepath)
         packer.pack(obj, filepath)
 
     @classmethod
     def unpack(cls, filepath: str, clazz=None, packer=None) -> Tuple[Any, Packer]:
-        packer = packer or cls.get_packer(filepath)
+        packer = packer or cls.decide_packer(filepath)
         return packer.unpack(filepath, clazz), packer
+
+    @classmethod
+    def unpack_by_str(cls, text, mode, clazz=None) -> Tuple[Any, Packer]:
+        packer = cls.get_packer(mode)
+        return packer.unpack_by_str(text, clazz)

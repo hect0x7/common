@@ -1,6 +1,5 @@
 from .hook import HookChainContainer, JudgeHook, ProcessHook
-from .packer import Packer, JsonPacker, YmlPacker, PicklePacker, \
-    PackerUtil, PackerFactory
+from .packer import Packer, JsonPacker, YmlPacker, PicklePacker, PackerUtil
 from .multi_task import MultiTaskLauncher, \
     multi_task_launcher, multi_thread_launcher, \
     multi_process_launcher, thread_pool_executor, \

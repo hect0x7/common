@@ -17,7 +17,3 @@ from multiprocessing import Process
 import re
 # noinspection PyUnresolvedReferences
 from re import compile
-
-StrNone = Optional[str]
-ListNone = Optional[List]
-DictNone = Optional[Dict]

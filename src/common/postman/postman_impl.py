@@ -132,7 +132,11 @@ class Postmans:
             clazz = Postmans.get_impl_clazz(impl_type)
             return clazz(meta_data)
 
-        def build_postman(self, data):
+        def build_postman(self, data: dict):
+            # key alias
+            if 'metadata' in data:
+                data.setdefault('meta_data', data['metadata'])
+
             for handler in self.dsl_handler_list:
                 postman = handler(data)
                 if postman is not None:
