@@ -208,7 +208,7 @@ class CommonResp(IResp):
         return self.json()['data']
 
     @property
-    def model_data(self) -> Any:
+    def model_data(self) -> DictModel:
         self.require_success()
         return self.model().data
 

@@ -1,4 +1,4 @@
-from typing import Callable, Type, Dict, Optional, Any, Tuple
+from typing import Callable, Type, Dict, Optional, Any, Tuple, TypeVar
 
 
 class Packer:
@@ -170,8 +170,10 @@ class PackerUtil:
         packer = packer or cls.decide_packer(filepath)
         packer.pack(obj, filepath)
 
+    __T = TypeVar('__T')
+
     @classmethod
-    def unpack(cls, filepath: str, clazz=None, packer=None) -> Tuple[Any, Packer]:
+    def unpack(cls, filepath: str, clazz: Type[__T] = None, packer=None) -> Tuple[__T, Packer]:
         packer = packer or cls.decide_packer(filepath)
         return packer.unpack(filepath, clazz), packer
 

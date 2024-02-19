@@ -29,7 +29,7 @@ class EasyAccessDict:
 
     def __getitem__(self, item):
         """
-        dict_model['aaa'] ---> dict_model.__getitem__('aaa')
+        model['aaa'] ---> model.aaa
         """
         if not isinstance(item, str):
             raise NotImplementedError(f"item: {item} ({type(item)})")
@@ -66,6 +66,14 @@ class AdvancedEasyAccessDict:
     @property
     def src_dict(self):
         return self._data
+
+    def get_from_anyone(self, *keys):
+        for key in keys:
+            try:
+                return self.__getitem__(key)
+            except KeyError:
+                pass
+        raise KeyError(keys, self._data)
 
     # 模拟dict的方法
 

@@ -79,7 +79,7 @@ class RetryPostman(PostmanProxy):
         return self.retry_request(self.postman.post, *args, **kwargs)
 
     def fallback(self, url, kwargs):
-        raise RuntimeError(f"请求失败，重试了{self.retry_times}次后依然失败: {url}，携带参数: {kwargs}")
+        raise Exception(f"请求失败，重试了{self.retry_times}次后依然失败: {url}，携带参数: {kwargs}")
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def excp_handle(self, e):
