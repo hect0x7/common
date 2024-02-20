@@ -1,4 +1,6 @@
-from common import Dict, List, Thread, current_thread, atexit_register, atexit_unregister
+from typing import Dict, List, TypeVar, Type, Optional, Iterable
+
+from common import Thread, current_thread, atexit_register, atexit_unregister
 from .multi_task import MultiTaskLauncher
 
 
@@ -63,3 +65,42 @@ class AtexitRegistry:
     def unregister(self):
         for func in self.atexit_hooks:
             atexit_unregister(func if not isinstance(func, tuple) else func[0])
+
+
+# 注册组件
+class ComponentRegistry:
+    registry: Dict[Type, Dict[str, Type]] = {}
+
+    @classmethod
+    def register_component(cls, interface: type, key_name: str, variables: Optional[Iterable[Type]] = None):
+        if variables is None:
+            variables = filter(lambda v: isinstance(v, type), globals().values())
+
+        cls.registry.setdefault(interface, {})
+        for clazz in variables:
+            if clazz != interface and issubclass(clazz, interface):
+                try:
+                    key = getattr(clazz, key_name)
+                except AttributeError:
+                    raise AssertionError(f'register failed, {clazz} must have a "{key_name}" attribute')
+
+                cls.registry[interface][key] = clazz
+
+        return cls.registry[interface]
+
+    __T = TypeVar('__T')
+
+    @classmethod
+    def get_impl_clazz(cls, interface: Type[__T], key: str) -> Type[__T]:
+        if interface not in cls.registry:
+            raise AssertionError(f'interface {interface} not found in registry')
+
+        clazz: Optional[Type[cls.__T]] = cls.registry[interface].get(key, None)
+        if clazz is None:
+            raise AssertionError(f'key {key} not found in registry of {interface}')
+
+        return clazz
+
+    @classmethod
+    def get_all_impl(cls, interface: type) -> Dict[str, Type]:
+        return cls.registry[interface]
