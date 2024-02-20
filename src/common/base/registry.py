@@ -72,13 +72,10 @@ class ComponentRegistry:
     registry: Dict[Type, Dict[str, Type]] = {}
 
     @classmethod
-    def register_component(cls, interface: type, key_name: str, variables: Optional[Iterable[Type]] = None):
-        if variables is None:
-            variables = filter(lambda v: isinstance(v, type), globals().values())
-
+    def register_component(cls, interface: type, key_name: str, variables: Iterable):
         cls.registry.setdefault(interface, {})
         for clazz in variables:
-            if clazz != interface and issubclass(clazz, interface):
+            if isinstance(clazz, type) and clazz != interface and issubclass(clazz, interface):
                 try:
                     key = getattr(clazz, key_name)
                 except AttributeError:
