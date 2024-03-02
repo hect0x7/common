@@ -5,9 +5,13 @@ from .multi_task import MultiTaskLauncher
 
 
 class ThreadRegistry:
+    holder = {}
 
     def __init__(self):
         self.thread_mapping: Dict[str, List[Thread]] = {}
+        if current_thread() in self.holder:
+            raise AssertionError("ThreadRegistry is not allowed to be used in the same thread")
+        self.holder[current_thread()] = self
 
     def register(self,
                  tag: str,
@@ -32,19 +36,29 @@ class ThreadRegistry:
 
         thread_ls = self.thread_mapping[tag]
         for thread in thread_ls:
-            if getattr(thread, tag) is True and thread.is_alive():
-                setattr(thread, tag, False)
+            setattr(thread, tag, False)
 
-                if finish_message is not None:
-                    print(finish_message)
-                if wait_finish is True:
-                    MultiTaskLauncher.wait_a_task(thread)
+            if finish_message is not None:
+                print(finish_message)
+            if wait_finish is True:
+                MultiTaskLauncher.wait_a_task(thread)
 
         return thread_ls
 
     def stop_all(self, finish_message=None):
         for tag in self.thread_mapping.keys():
             self.stop(tag, finish_message)
+
+    @classmethod
+    def get_current_thread_tag_value(cls, tag, default):
+        instance = cls.holder[current_thread()]
+
+        thread_ls = instance.thread_mapping.get(tag, [])
+        for t in thread_ls:
+            if t is current_thread():
+                return getattr(t, tag, default)
+
+        return default
 
 
 class AtexitRegistry:
