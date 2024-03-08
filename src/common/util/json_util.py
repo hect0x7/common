@@ -31,6 +31,15 @@ class AdvancedDict:
 
         self._data = data
 
+    @classmethod
+    def wrap(cls, data):
+        if isinstance(data, dict):
+            return cls(data)
+        if isinstance(data, cls):
+            return cls(data.src_dict)
+
+        raise NotImplementedError(f'unsupported type: {type(data)}')
+
     #  get增强
 
     def __getattr__(self, item):
