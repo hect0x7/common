@@ -8,6 +8,120 @@ json_load = load
 json_dumps = dumps
 json_dump = dump
 
+missing_sentinel = object()
+
+
+class AdvancedDict:
+    """
+    功能增强版Dict
+
+    1. get增强，支持使用如下方式获取字典的值：
+        object.key
+        object[key]
+    2. set增强，支持使用如下方式设置字典的值：
+        object.key = value
+        object[key] = value
+    3. 代理dict的方法
+    4. 添加常用函数
+    """
+
+    def __init__(self, data: dict):
+        if not isinstance(data, dict):
+            raise AssertionError('初始化参数必须是dict类型')
+
+        self._data = data
+
+    #  get增强
+
+    def __getattr__(self, item):
+        return self.wrap_value(self._data[item])
+
+    # set增强
+    def __setattr__(self, key, value):
+        if key == '_data':
+            return super().__setattr__(key, value)
+        self._data[key] = value
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def wrap_value(self, v):
+        if isinstance(v, (list, tuple)):
+            v = [self.__class__(e) if isinstance(e, dict) else e for e in v]
+        elif isinstance(v, dict):
+            v = self.__class__(v)
+        return v
+
+    # 原始dict
+
+    @property
+    def src_dict(self):
+        return self._data
+
+    # 代理dict的方法
+
+    def __contains__(self, item):
+        return item in self._data
+
+    def __getitem__(self, item):
+        return self.wrap_value(self._data[item])
+
+    def get(self, *args, **kwargs):
+        return self._data.get(*args, **kwargs)
+
+    def items(self):
+        return self._data.items()
+
+    def values(self):
+        return self._data.values()
+
+    def keys(self):
+        return self._data.keys()
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __delitem__(self, key):
+        del self._data[key]
+
+    def setdefault(self, k, v):
+        return self._data.setdefault(k, v)
+
+    # 添加常用函数
+    def to_json(self, **kwargs):
+        import json
+        return json.dumps(self._data, **kwargs)
+
+    def to_file(self, filepath):
+        from common import PackerUtil
+        PackerUtil.pack(self._data, filepath)
+
+    def __copy__(self):
+        import copy
+        return self.__class__(copy.deepcopy(self._data))
+
+    def copy(self):
+        return self.__copy__()
+
+    def get_from_any_key(self, *keys, missing=missing_sentinel):
+        """
+        从字典中获取指定键对应的值，如果不存在，则返回指定的默认值
+
+        :param keys: 可变数量的键
+        :return: 第一个存在的键对应的值，如果没有找到任何键，则返回None
+        :param missing: 当没有找到任何键对应的值时，返回的值
+        """
+        for key in keys:
+            try:
+                return self[key]
+            except KeyError:
+                pass
+
+        if missing is missing_sentinel:
+            raise KeyError(keys)
+
+        return missing
+
 
 class EasyAccessDict:
     """
