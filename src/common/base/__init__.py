@@ -9,3 +9,4 @@ from .registry import AtexitRegistry, ThreadRegistry, ComponentRegistry
 from .mapper import Mapper, MapperFactory
 from .logger import Logger, LoggerFactory
 from .genor import Genor, GeneratorFactory
+from .listen_input import ListenInputThread

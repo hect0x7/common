@@ -96,6 +96,9 @@ class AdvancedDict:
     def setdefault(self, k, v):
         return self._data.setdefault(k, v)
 
+    def pop(self, k, dv):
+        return self._data.pop(k, dv)
+
     # 添加常用函数
     def to_json(self, **kwargs):
         import json
