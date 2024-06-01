@@ -267,7 +267,7 @@ class CacheRunner(Thread):
         if cache is not None:
             return cache
 
-        if not self.is_alive():
+        if not self._started.is_set() and not self.is_alive():
             self.start()
 
         self.join()

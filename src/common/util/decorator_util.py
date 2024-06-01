@@ -67,3 +67,17 @@ def field_cache(field_name=None, sentinel=None, obj=None):
         return func_exec
 
     return wrapper
+
+
+def trycatch(ret):
+    def docorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                from common import traceback_print_exec
+                return ret
+
+        return wrapper
+
+    return docorator

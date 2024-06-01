@@ -181,3 +181,63 @@ def show_bytecodes():
         dis(paste_from_clip())
     except:
         return
+
+
+class ConfigTemplate:
+    default_provider = {}
+
+    def __init__(self, metadata: dict):
+        self.metadata: dict = metadata
+        self.filepath = None
+
+    def __getattr__(self, item):
+        if item in self.metadata:
+            return self.metadata[item]
+
+        if self is self.__class__.default_provider:
+            raise KeyError(item)
+
+        return self.from_default(item)
+
+    def __setattr__(self, key, value):
+        if key == 'metadata' or key == 'filepath':
+            return super().__setattr__(key, value)
+        self.metadata[key] = value
+
+    __getitem__ = __getattr__
+    __setitem__ = __setattr__
+
+    def to_full_metadata(self):
+        return {**self.__class__.default_provider, **self.metadata}
+
+    def remove_self_default(self):
+        for k in list(self.metadata.keys()):
+            try:
+                value = self.from_default(k)
+                if self.metadata[k] == value:
+                    self.metadata.pop(k)
+            except (KeyError, AttributeError):
+                continue
+
+    def from_default(self, item):
+        dp = self.__class__.default_provider
+        if isinstance(dp, dict):
+            return dp[item]
+
+        return getattr(dp, item)
+
+    def to_file(self, filepath=None):
+        filepath = filepath or self.filepath
+        if not filepath:
+            raise Exception('filepath is None')
+        from common import PackerUtil
+        PackerUtil.pack(self.metadata, self.filepath)
+        self.filepath = filepath
+
+    @classmethod
+    def from_file(cls, filepath):
+        from common import PackerUtil
+        metadata, _ = PackerUtil.unpack(filepath)
+        config = cls(metadata)
+        config.filepath = filepath
+        return config
