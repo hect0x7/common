@@ -3,19 +3,7 @@ import threading
 
 class ListenInputThread(threading.Thread):
     """
-    author: AI
-    example:
-    ```python
-    input_thread = InputThread('请输入内容')
-    while True:
-        user_input = input_thread.get_input(1)  # 设置1秒超时
-        if user_input is not None:
-            print(f"你输入了：{user_input}")
-            break
-        else:  # 超时处理，这里简单打印一个点作为示例
-            print(".", end='', flush=True)
-    ```
-
+    InputThread('请输入内容').join_wait_input('遇到ctrl+c或其他异常，强制退出')
     """
 
     def __init__(self, msg):
@@ -54,3 +42,5 @@ class ListenInputThread(threading.Thread):
             # 已收到用户输入
             if user_input is not None:
                 return
+
+            print(self.msg)
