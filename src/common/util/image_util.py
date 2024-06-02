@@ -59,22 +59,3 @@ def merge_images(folder_path, limit=None, delete_org_file=True, suffix='.webp'):
     if delete_org_file is True:
         for f in webp_files:
             os.remove(os.path.join(folder_path, f))
-
-
-def convert_images_to_jpg(folder_path, delete_org_file=True):
-    import os
-    from PIL import Image
-    for root, dirs, files in os.walk(folder_path):
-        for filename in files:
-            # 检查文件扩展名是否为图片格式
-            if filename.lower().endswith(('.png', '.bmp', '.gif', '.jpeg', '.ppm', '.tiff', 'webp')):
-                file_path = os.path.join(root, filename)
-                # 打开图片并转换为JPG格式
-                with Image.open(file_path) as img:
-                    new_file_path = os.path.splitext(file_path)[0] + '.jpg'
-                    img.convert('RGB').save(new_file_path)
-
-                if delete_org_file is True:
-                    # 删除原始文件
-                    os.remove(file_path)
-                print(f'{file_path} → {new_file_path}')

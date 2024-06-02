@@ -186,9 +186,9 @@ def show_bytecodes():
 class ConfigTemplate:
     default_provider = {}
 
-    def __init__(self, metadata: dict):
+    def __init__(self, metadata: dict, filepath=None):
         self.metadata: dict = metadata
-        self.filepath = None
+        self._filepath = filepath
 
     def __getattr__(self, item):
         if item in self.metadata:
@@ -199,8 +199,8 @@ class ConfigTemplate:
 
         return self.from_default(item)
 
-    def __setattr__(self, key, value):
-        if key == 'metadata' or key == 'filepath':
+    def __setattr__(self, key: str, value):
+        if key == 'metadata' or key == 'default_provider' or key.startswith('_'):
             return super().__setattr__(key, value)
         self.metadata[key] = value
 
@@ -208,7 +208,7 @@ class ConfigTemplate:
     __setitem__ = __setattr__
 
     def to_full_metadata(self):
-        return {**self.__class__.default_provider, **self.metadata}
+        return {**self.default_provider, **self.metadata}
 
     def remove_self_default(self):
         for k in list(self.metadata.keys()):
@@ -220,24 +220,23 @@ class ConfigTemplate:
                 continue
 
     def from_default(self, item):
-        dp = self.__class__.default_provider
+        dp = self.default_provider
         if isinstance(dp, dict):
             return dp[item]
 
         return getattr(dp, item)
 
     def to_file(self, filepath=None):
-        filepath = filepath or self.filepath
+        filepath = filepath or self._filepath
         if not filepath:
             raise Exception('filepath is None')
         from common import PackerUtil
-        PackerUtil.pack(self.metadata, self.filepath)
-        self.filepath = filepath
+        PackerUtil.pack(self.metadata, self._filepath)
+        self._filepath = filepath
 
     @classmethod
     def from_file(cls, filepath):
         from common import PackerUtil
         metadata, _ = PackerUtil.unpack(filepath)
-        config = cls(metadata)
-        config.filepath = filepath
+        config = cls(metadata, filepath)
         return config

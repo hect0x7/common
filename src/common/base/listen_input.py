@@ -24,15 +24,33 @@ class ListenInputThread(threading.Thread):
         self.msg = msg
 
     def run(self):
+        import sys
         try:
-            self.user_input = input(self.msg)
-        except (KeyboardInterrupt, UnicodeDecodeError):
-            raise AssertionError
+            print(self.msg)
+            self.user_input = sys.stdin.readline()
+        except BaseException:
+            return
 
     def get_input(self, timeout):
         self.join(timeout)  # 等待指定时间
         if self.is_alive():  # 如果线程还在运行，说明没有输入
-            print(self.msg)
             return None
         else:
             return self.user_input
+
+    def join_wait_input(self, exit_msg):
+        self.start()
+        sentinel = object()
+        self.user_input = sentinel
+
+        while True:
+            # 设置1秒超时
+            user_input = self.get_input(1)
+
+            # 如果线程异常退出了
+            if user_input is sentinel:
+                raise KeyboardInterrupt(exit_msg)
+
+            # 已收到用户输入
+            if user_input is not None:
+                return

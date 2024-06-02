@@ -7,5 +7,4 @@ from .time_util import *
 from .decorator_util import *
 from .json_util import *
 from .requests_util import *
-from .exception_utll import *
 from .image_util import *
