@@ -17,3 +17,7 @@ from multiprocessing import Process
 import re
 # noinspection PyUnresolvedReferences
 from re import compile
+# noinspection PyUnresolvedReferences
+import os
+# noinspection PyUnresolvedReferences
+import sys
