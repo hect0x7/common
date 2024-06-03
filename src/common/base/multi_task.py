@@ -66,7 +66,7 @@ class MultiTaskLauncher:
 
         if isinstance(interval_to_sleep, int) or isinstance(interval_to_sleep, float):
             if interval_to_sleep > 0:
-                sleep(interval_to_sleep)
+                cls.do_sleep(interval_to_sleep)
         else:
             # condition 不是以下类型，则暂未实现以何种方式调用
             # 1. 函数
@@ -95,6 +95,7 @@ class MultiTaskLauncher:
 
             cls.wait_a_task(task)
 
+    do_sleep = sleep
 
 def multi_task_launcher(iter_objs: Iterable,
                         apply_each_obj_func: Callable,

@@ -54,11 +54,12 @@ class AdvancedDict:
     def __setitem__(self, key, value):
         self._data[key] = value
 
-    def wrap_value(self, v):
+    @classmethod
+    def wrap_value(cls, v):
         if isinstance(v, (list, tuple)):
-            v = [self.__class__(e) if isinstance(e, dict) else e for e in v]
+            v = [cls(e) if isinstance(e, dict) else e for e in v]
         elif isinstance(v, dict):
-            v = self.__class__(v)
+            v = cls(v)
         return v
 
     # 原始dict

@@ -1,7 +1,7 @@
 from .time_util import time_stamp
 
 
-def timeit(topic: str = '程序运行', print_template='耗时{:.02f}秒', loop_times=1):
+def timeit(topic=None, print_template='耗时{:.02f}秒', loop_times=1):
     if loop_times < 0:
         raise AssertionError('循环次数不可小于0，因为无意义')
 
@@ -11,7 +11,7 @@ def timeit(topic: str = '程序运行', print_template='耗时{:.02f}秒', loop_
             obj = None
             for _ in range(loop_times):
                 obj = func(*args, **kwargs)
-            print(topic + print_template.format(time_stamp(as_int=False) - x))
+            print((topic or func.__name__) + print_template.format(time_stamp(as_int=False) - x))
             return obj
 
         return timeit_func

@@ -21,13 +21,10 @@ def fix_filepath(filepath: str, is_dir=None) -> str:
     """
     filepath = filepath.replace("\\", '/').replace("//", '/')
 
-    if is_dir is None:
-        is_dir = os.path.isdir(filepath)
-
-    if is_dir is not True:
-        return filepath
-    else:
+    if os.path.isdir(filepath):
         return filepath if filepath[-1] == '/' else filepath + '/'
+    else:
+        return filepath
 
 
 def fix_suffix(suffix: str) -> str:
@@ -141,32 +138,27 @@ def accept_files_of_dir(abs_dir_path: str, acceptor: Callable[[str, str, int], N
         acceptor(f'{abs_dir_path}{filename}', filename, index)
 
 
-def backup_dir_to_zip(dirpath: str,
-                      zippath: str,
+def backup_dir_to_zip(base_dir: str,
+                      target: str,
                       zfile=None,
-                      prefix: Optional[str] = None,
                       acceptor: Optional[Callable[[str], bool]] = None,
                       ):
     if zfile is None:
         import zipfile
-        zfile = zipfile.ZipFile(zippath, 'w')
+        zfile = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
 
-    for f in files_of_dir(dirpath):
-        file_name = of_file_name(f)
+    with zfile:
+        for root, dirs, files in os.walk(base_dir):
+            root: str
+            # 遍历当前目录下的文件
+            for file in files:
+                abspath = os.path.join(root, file)
+                if acceptor is not None and not acceptor(abspath):
+                    continue
 
-        if prefix is not None:
-            file_name = f'{prefix}/{file_name}'
-
-        if os.path.isdir(f):
-            if acceptor is None or acceptor(f) is not True:
-                continue
-
-            backup_dir_to_zip(f, zippath, zfile, file_name, acceptor)
-            continue
-
-        if acceptor is None or acceptor(f) is True:
-            zfile.write(f, file_name)
-
+                # 将相对路径添加到zip文件中，避免保存绝对路径
+                relpath = os.path.relpath(abspath, base_dir)
+                zfile.write(abspath, relpath)
     return zfile
 
 

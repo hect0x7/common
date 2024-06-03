@@ -71,9 +71,9 @@ class StopThreadFlag:
     def marked_thread_set(self):
         return self._marked
 
-    def should_stop(self):
+    def should_stop(self, thread=None):
         try:
-            return self.STOP == getattr(current_thread(), self.key)
+            return self.STOP == getattr(thread or current_thread(), self.key)
         except AttributeError:
             print(f"{self.key} is not set for current thread {current_thread()}")
 
