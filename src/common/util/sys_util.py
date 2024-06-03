@@ -190,6 +190,10 @@ class ConfigTemplate:
         self.metadata: dict = metadata
         self._filepath = filepath
 
+    @property
+    def filepath(self):
+        return self._filepath
+
     def __getattr__(self, item):
         if item in self.metadata:
             return self.metadata[item]

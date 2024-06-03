@@ -61,7 +61,7 @@ class YmlPacker(AbstractPacker):
 
     def unpack_by_str(self, text: str, clazz=None) -> Any:
         import yaml
-        return yaml.load(text, yaml.FullLoader)
+        return yaml.load(text, yaml.SafeLoader)
 
     def dump(self, fp, obj):
         import yaml
@@ -73,7 +73,7 @@ class YmlPacker(AbstractPacker):
 
     def load(self, fp, clazz) -> Any:
         import yaml
-        return yaml.load(fp, yaml.FullLoader)
+        return yaml.load(fp, yaml.SafeLoader)
 
     @staticmethod
     def add_constructor(tag, constructor: Callable):
