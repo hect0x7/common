@@ -15,8 +15,10 @@ class ListenInputThread(threading.Thread):
         import sys
         try:
             print(self.msg)
-            self.user_input = sys.stdin.readline()
-        except BaseException:
+            line = sys.stdin.readline()
+            if line != '':
+                self.user_input = line
+        except KeyboardInterrupt:
             return
 
     def get_input(self, timeout):
