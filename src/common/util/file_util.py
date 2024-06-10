@@ -140,12 +140,10 @@ def accept_files_of_dir(abs_dir_path: str, acceptor: Callable[[str, str, int], N
 
 def backup_dir_to_zip(base_dir: str,
                       target: str,
-                      zfile=None,
                       acceptor: Optional[Callable[[str], bool]] = None,
                       ):
-    if zfile is None:
-        import zipfile
-        zfile = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
+    import zipfile
+    zfile = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
 
     with zfile:
         for root, dirs, files in os.walk(base_dir):

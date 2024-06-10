@@ -8,6 +8,7 @@ class ListenInputThread(threading.Thread):
 
     def __init__(self, msg):
         super().__init__()
+        self.daemon = True
         self.user_input = None
         self.msg = msg
 
@@ -28,7 +29,7 @@ class ListenInputThread(threading.Thread):
         else:
             return self.user_input
 
-    def join_wait_input(self, exit_msg):
+    def join_wait_input(self, exit_msg, timeout=1):
         self.start()
         sentinel = object()
         self.user_input = sentinel
