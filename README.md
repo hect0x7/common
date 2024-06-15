@@ -1,2 +1,2 @@
 # common
-python toolkit for myself
+python common toolkit
