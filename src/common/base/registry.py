@@ -5,13 +5,8 @@ from common import atexit_register, atexit_unregister, current_thread
 
 class AtexitRegistry:
 
-    def __init__(self,
-                 atexit_hooks,
-                 register_at_once=True
-                 ) -> None:
+    def __init__(self, atexit_hooks) -> None:
         self.atexit_hooks = atexit_hooks
-        if register_at_once is True:
-            self.register()
 
     def register(self):
         for func in self.atexit_hooks:
@@ -72,20 +67,38 @@ class StopThreadFlag:
         return self._marked
 
     def should_stop(self, thread=None):
+        thread = thread or current_thread()
         try:
-            return self.STOP == getattr(thread or current_thread(), self.key)
+            return self.STOP == getattr(thread, self.key)
         except AttributeError:
-            print(f"{self.key} is not set for current thread {current_thread()}")
+            import sys
+            sys.stderr.write(
+                f"{self.key} is not set for thread [{thread}], "
+                f"current thread: [{current_thread()}]\n"
+            )
 
     def mark_run(self, thread=None):
         thread = thread or current_thread()
+        if getattr(thread, self.key, None) == self.STOP:
+            import sys
+            sys.stderr.write(
+                f"{self.key} is already set STOP for thread: [{thread}], "
+                f"current thread: [{current_thread()}]\n"
+            )
+            return
+
         setattr(thread, self.key, self.RUN)
         self._marked.add(thread)
 
     def mark_stop(self, thread):
         thread = thread or current_thread()
         setattr(thread, self.key, self.STOP)
+        self._marked.add(thread)
 
     def mark_stop_for_all(self):
         for thread in self._marked:
             self.mark_stop(thread)
+
+    def wait_for_all(self):
+        from common import MultiTaskLauncher
+        MultiTaskLauncher.wait_tasks(self._marked)

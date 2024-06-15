@@ -29,14 +29,18 @@ class ListenInputThread(threading.Thread):
         else:
             return self.user_input
 
-    def join_wait_input(self, exit_msg, timeout=1):
+    def join_wait_input(self, exit_msg, timeout=1, flag=None):
         self.start()
         sentinel = object()
         self.user_input = sentinel
 
         while True:
             # 设置1秒超时
-            user_input = self.get_input(1)
+            user_input = self.get_input(timeout)
+
+            # 如果收到停止信号
+            if flag is not None and flag.should_stop():
+                raise KeyboardInterrupt(exit_msg)
 
             # 如果线程异常退出了
             if user_input is sentinel:

@@ -4,7 +4,7 @@ import typing
 from typing import Dict, List, Tuple, Set, \
     Type, Callable, Any, Optional, Union, \
     Iterable, Iterator, Generator, Sequence, \
-    IO, Match, Pattern
+    IO, Match, Pattern, TypeVar
 # noinspection PyUnresolvedReferences
 import threading
 # noinspection PyUnresolvedReferences
