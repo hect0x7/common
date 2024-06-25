@@ -8,12 +8,13 @@ from .registry import StopThreadFlag
 class MultiTaskLauncher:
     Task = Union[Thread, Process]
     TaskClass = Union[Type[Thread], Type[Process]]
+    DEFAULT_FLAG = None
 
     def __init__(self, task_metadata: Optional[Dict[str, Any]] = None):
         if task_metadata is None:
             task_metadata = {}
 
-        self.flag: Optional[StopThreadFlag] = None
+        self.flag: Optional[StopThreadFlag] = self.DEFAULT_FLAG
         self.task_ls: list = []
         self.task_metadata: dict = task_metadata
 
@@ -27,13 +28,17 @@ class MultiTaskLauncher:
                     kwargs: Optional[dict] = None,
                     clazz: TaskClass = Thread,
                     start=True,
+                    **extra
                     ) -> Union[Thread, Process]:
         args, kwargs = process_args_kwargs(args, kwargs)
+
+        metadata = self.task_metadata.copy()
+        metadata.update(extra)
 
         task = clazz(target=target,
                      args=args,
                      kwargs=kwargs,
-                     **self.task_metadata,
+                     **metadata,
                      )
         self.task_ls.append(task)
 
@@ -46,8 +51,16 @@ class MultiTaskLauncher:
         return task
 
     def wait_finish(self):
-        for task in self.task_ls:
-            self.wait_task(task)
+        try:
+            for task in self.task_ls:
+                self.wait_task(task)
+        except KeyboardInterrupt:
+            from common import traceback_print_exec
+
+            traceback_print_exec()
+            if self.flag:
+                self.flag.mark_stop_for_all()
+            raise
 
     def wait_task(self, task: Task):
         if task == current_thread():
@@ -74,6 +87,12 @@ class MultiTaskLauncher:
     def build_daemon(cls):
         return MultiTaskLauncher({"daemon": True})
 
+    def __len__(self):
+        return len(self.task_ls)
+
+    def __iter__(self):
+        return iter(self.task_ls)
+
 
 def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
                         iter_objs: Iterable,
@@ -92,11 +111,11 @@ def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
     for index, obj in enumerate(iter_objs):
         args, kwargs = process_single_arg_to_args_and_kwargs(obj)
 
-        task = launcher.create_task(target=apply_each_obj_func,
-                                    args=args,
-                                    kwargs=kwargs,
-                                    clazz=clazz,
-                                    )
+        launcher.create_task(target=apply_each_obj_func,
+                             args=args,
+                             kwargs=kwargs,
+                             clazz=clazz,
+                             )
         if batch_size is not None and (index + 1) % batch_size == 0:
             launcher.pause(pause_duration)
 
@@ -131,16 +150,51 @@ def thread_pool_executor(
         wait_finish=True,
         max_workers=None,
 ):
-    ret = []
-    from concurrent.futures import ThreadPoolExecutor
-    executor = ThreadPoolExecutor(max_workers)
-    for obj in iter_objs:
-        args, kwargs = process_single_arg_to_args_and_kwargs(obj)
-        future = executor.submit(apply_each_obj_func, *args, **kwargs)
-        ret.append(future)
+    # copy from Python312\Lib\concurrent\futures\thread.py
+    # 计算最大线程数
+    if max_workers is None:
+        import os
+        max_workers = min(32, (os.cpu_count() or 1) + 4)
+    if max_workers <= 0:
+        raise ValueError("max_workers must be greater than 0")
 
-    executor.shutdown(wait_finish)
-    return ret
+    # 准备工作队列
+    from queue import Queue
+    q = Queue()
+    launcher = MultiTaskLauncher.build_daemon()
+    STOP = None
+
+    def do_work():
+        while True:
+            obj = q.get()
+            if obj is STOP:
+                return
+            args, kwargs = obj
+            try:
+                apply_each_obj_func(*args, **kwargs)
+            except BaseException:
+                from common import traceback_print_exec
+                traceback_print_exec()
+
+    def try_add_worker():
+        num_threads = len(launcher)
+        if num_threads < max_workers:
+            launcher.create_task(do_work, name=f'thread_pool_executor_{num_threads}')
+
+    # 向队列中添加任务并启动线程
+    for obj in iter_objs:
+        q.put(process_single_arg_to_args_and_kwargs(obj))
+        try_add_worker()
+
+    # 向队列中添加停止信号
+    for _ in range(len(launcher)):
+        q.put(STOP)
+
+    # 等待工作线程全部完成
+    if wait_finish:
+        launcher.wait_finish()
+
+    return launcher, q
 
 
 def multi_call(func, iter_objs, launcher=multi_thread_launcher, wait=True):
