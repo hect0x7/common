@@ -26,17 +26,23 @@ class MultiTaskLauncher:
                     args: Optional[Any] = None,
                     kwargs: Optional[dict] = None,
                     clazz: TaskClass = Thread,
+                    start=True,
                     ) -> Union[Thread, Process]:
         args, kwargs = process_args_kwargs(args, kwargs)
+
         task = clazz(target=target,
                      args=args,
                      kwargs=kwargs,
                      **self.task_metadata,
                      )
+        self.task_ls.append(task)
+
         if self.flag is not None:
             self.flag.mark_run(task)
 
-        self.task_ls.append(task)
+        if start:
+            task.start()
+
         return task
 
     def wait_finish(self):
@@ -63,7 +69,6 @@ class MultiTaskLauncher:
 
         self.check_stop_flag()
         sleep(duration - 0.1 * times)
-
 
     @classmethod
     def build_daemon(cls):
@@ -92,7 +97,6 @@ def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
                                     kwargs=kwargs,
                                     clazz=clazz,
                                     )
-        task.start()
         if batch_size is not None and (index + 1) % batch_size == 0:
             launcher.pause(pause_duration)
 
