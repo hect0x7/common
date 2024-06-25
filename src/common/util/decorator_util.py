@@ -74,7 +74,9 @@ def trycatch(ret):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except Exception:
+            except KeyboardInterrupt:
+                return ret
+            except BaseException:
                 from common import traceback_print_exec
                 return ret
 

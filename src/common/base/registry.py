@@ -100,5 +100,12 @@ class StopThreadFlag:
             self.mark_stop(thread)
 
     def wait_for_all(self):
-        from common import MultiTaskLauncher
-        MultiTaskLauncher.wait_tasks(self._marked)
+        for thread in self.marked_thread_set:
+            if thread is current_thread():
+                continue
+
+            while thread.is_alive():
+                thread.join(timeout=1)
+
+    def raise_stop_exception(self):
+        raise KeyboardInterrupt
