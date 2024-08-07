@@ -1,5 +1,4 @@
 from common import Optional, Iterable, file_not_exists, create_file
-from .hook import ProcessSupport
 
 
 class Logger:
@@ -55,7 +54,6 @@ class Logger:
 class AbstractSetLogger(Logger):
 
     def __init__(self):
-        super().__init__()
         self.data: Optional[set] = None
 
     def is_done(self, obj) -> bool:
@@ -97,7 +95,7 @@ class AbstractSetLogger(Logger):
         return self.data.__iter__()
 
 
-class LoggerImpl(AbstractSetLogger, ProcessSupport):
+class LoggerImpl(AbstractSetLogger):
 
     def __init__(self, log_file_path: str):
         super().__init__()
@@ -118,10 +116,12 @@ class LoggerImpl(AbstractSetLogger, ProcessSupport):
 
     def save(self, callback=None):
         # no load, no save
-        if self.data is None:
+        if self.data is None and callback is None:
             return
 
-        data = self.apply_callback(callback, self.data, "Logger.save方法的回调返回值不能为None")
+        self.make_sure_loaded()
+        data = callback(self.data)
+
         with open(self.log_file_path, 'w', encoding='utf-8') as f:
             for obj in data:
                 f.write(f"{obj}\n")

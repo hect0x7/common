@@ -70,7 +70,7 @@ def field_cache(field_name=None, sentinel=None, obj=None):
 
 
 def trycatch(hook):
-    def docorator(func):
+    def decorator(func):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -82,4 +82,4 @@ def trycatch(hook):
 
         return wrapper
 
-    return docorator
+    return decorator

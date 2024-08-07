@@ -3,4 +3,4 @@ from .base import *
 from .postman import *
 from .ext import *
 
-VERSION = '0.6.28'
+VERSION = '0.6.29'

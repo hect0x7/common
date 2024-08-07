@@ -136,23 +136,23 @@ class ThreadFlagManager:
         if self.is_stop():
             self.flag.raise_stop_exception()
 
-    def sleep_or_return(self, duration: float) -> bool:
+    def sleep_or_return(self, duration: float, part=0.5) -> bool:
         """
         :return: should stop
         """
         from time import sleep
-        if duration < 0.1:
+        if duration < part:
             sleep(duration)
 
-        times = int(duration / 0.1)
+        times = int(duration / part)
         for _ in range(times):
             if self.is_stop():
                 return True
-            sleep(0.1)
+            sleep(part)
 
         if self.is_stop():
             return True
-        sleep(duration - 0.1 * times)
+        sleep(duration - part * times)
         return False
 
     def is_stop(self):

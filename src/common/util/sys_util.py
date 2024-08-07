@@ -19,7 +19,7 @@ def workspace(sub_file=None, mode=None, encoding='utf-8', is_dir=False) -> Union
     if sub_file is None:
         return workspace
 
-    sub_file = fix_filepath(workspace + sub_file, is_dir)
+    sub_file = fix_filepath(workspace + sub_file)
     if is_dir:
         if mode is not None:
             raise AssertionError(f'不可以读取文件夹！args=({sub_file}, {mode}, {encoding}, {is_dir})')
@@ -38,7 +38,7 @@ def workspace(sub_file=None, mode=None, encoding='utf-8', is_dir=False) -> Union
 
 def set_application_workspace(workspace: str):
     global _workspace
-    _workspace = fix_filepath(workspace, is_dir=True)
+    _workspace = fix_filepath(workspace)
 
 
 def current_thread():

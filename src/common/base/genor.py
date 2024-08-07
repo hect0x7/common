@@ -1,95 +1,78 @@
-from common import Optional, Iterable, Callable
+import queue
+from typing import Any, Callable
 
-from .hook import JudgeHook, ProcessHook
-
-
-class Genor(JudgeHook, ProcessHook):
-
-    def product(self) -> Iterable:
-        raise NotImplementedError
-
-    def remaining(self) -> int:
-        raise NotImplementedError
-
-    def giveback(self):
-        raise NotImplementedError
-
-    def reset(self):
-        raise NotImplementedError
-
-    def append(self, obj: object):
-        raise NotImplementedError
-
-    def __iter__(self):
-        raise NotImplementedError
-
-    def __len__(self):
-        raise NotImplementedError
+from .registry import ThreadFlagManager, StopThreadFlag
 
 
-class ListGenerator(Genor):
+class QueueGenerator(ThreadFlagManager):
 
-    def __init__(self, data: Iterable):
-        super().__init__()
-        # 转为 list
-        data = data if isinstance(data, list) else list(data)
-        self.element_list = data
-        self.max_index = len(data)
-        self.done_list = [False] * self.max_index
-        self.__index = 0
+    def __init__(self,
+                 end_element: object,
+                 accept_flag: StopThreadFlag,
+                 filter_method: Callable[[Any], bool],
+                 ):
+        """
+        total_element: 所有外界放进来的元素
+        q: 被filter_method过滤的元素
+        done_element: q中被取出的元素
+        """
+        super().__init__(accept_flag)
+        self.flag.mark_run()
 
-    def register_hook(self, callback: Callable, chain_key: int):
-        super().register_hook(callback, chain_key)
+        self.q = queue.Queue()
+        self.total_element = []
+        self.done_element = []
 
-        if chain_key is self.judge_chain_key:
-            self.reset()
+        self.end_element = end_element
+        self.is_giveback = False
+        self.is_end = False
+        self.filter_method = filter_method
 
-    def product(self):
-        # ordered
-        while self.__index < self.max_index:
-            if self.done_list[self.__index] is False:
-                self.done_list[self.__index] = True
-                yield self.process(self.element_list[self.__index])
-                # check for give-back case
-                if self.done_list[self.__index] is True:
-                    self.__index += 1
-                    continue
-            else:
-                self.__index += 1
-
-    def remaining(self) -> int:
-        # return len(tuple(i for i in filter(lambda done: done is False, self.done_list)))
-        return self.max_index - self.__index - self.done_list[self.__index]
-
-    def giveback(self):
-        self.done_list[self.__index] = False
-
-    def reset(self):
-        self.element_list = [it for it in self.element_list if self.judge(self.process(it)) is True]
-        self.max_index = len(self.element_list)
-        self.done_list = [False] * self.max_index
-        self.__index = 0
-
-    def __iter__(self):
-        return self.product()
+    def total(self):
+        return len(self.total_element)
 
     def __len__(self):
-        return self.max_index
+        return len(self.done_element) + self.q.qsize()
 
-    def append(self, obj: object):
-        if self.judge(obj) is True:
-            self.element_list.append(obj)
-            self.max_index += 1
-            self.done_list.append(False)
+    def __iter__(self):
+        while True:
+            try:
+                e = self.get_and_check_stop()
+                if e == self.end_element:
+                    return
 
+                self.done_element.append(e)
+                yield e
 
-class GeneratorFactory:
+                while self.is_giveback:
+                    self.is_giveback = False
+                    yield e
 
-    @staticmethod
-    def get_generator(data: Iterable,
-                      judge_hook: Optional[JudgeHook.JudgeFunc] = None,
-                      process_hook: Optional[ProcessHook.ProcessFunc] = None) -> Genor:
-        list_genor = ListGenerator(data)
-        list_genor.register_ifnn(process_hook, ProcessHook.process_chain_key)
-        list_genor.register_ifnn(judge_hook, JudgeHook.judge_chain_key)
-        return list_genor
+            except queue.Empty:
+                return
+
+    def get_and_check_stop(self):
+        while True:
+            try:
+                if self.is_stop():
+                    return self.end_element
+                return self.q.get(block=False)
+            except queue.Empty:
+                self.sleep_or_return(2)
+                if self.is_end:
+                    return self.end_element
+
+    def remaining(self) -> int:
+        return self.q.qsize()
+
+    def giveback(self):
+        self.is_giveback = True
+
+    def put(self, obj: object):
+        if self.end_element == obj:
+            self.is_end = True
+            return
+
+        self.total_element.append(obj)
+        if self.filter_method(obj):
+            self.q.put(obj)

@@ -13,18 +13,7 @@ def format_ts(ts: float = None, f_time: str = "%Y-%m-%d %H:%M:%S") -> str:
     return time.strftime(f_time, time.localtime(ts))
 
 
-def sleep_conditional_func(batch_count,
-                           sleep_period,
-                           debug=False,
-                           debug_message_template="[count: {}次, 睡眠: {}秒]",
-                           ):
-    # noinspection PyUnusedLocal
-    def sleep_interval(count, *args, **kwargs) -> int:
-        if count != 0 and count % batch_count == 0:
-            if debug is True:
-                print(debug_message_template.format(count, sleep_period))
-            return sleep_period
-        else:
-            return 0
-
-    return sleep_interval
+def unformat_ts(time_str: str, pattern: str = "%Y-%m-%d %H:%M:%S", as_int=True) -> int:
+    from datetime import datetime
+    ts = datetime.strptime(time_str, pattern).timestamp()
+    return int(ts) if as_int else ts

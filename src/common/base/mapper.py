@@ -1,6 +1,5 @@
 from common import Any, Optional, Dict, Iterable
 from common import file_not_exists, create_file
-from .hook import ProcessSupport
 
 
 class Mapper:
@@ -138,7 +137,7 @@ class AbstractDictMapper(Mapper):
         return self.data.values()
 
 
-class MapperImpl(AbstractDictMapper, ProcessSupport):
+class MapperImpl(AbstractDictMapper):
 
     def __init__(self, map_file_path: str, separator: str):
         super().__init__()
@@ -169,10 +168,11 @@ class MapperImpl(AbstractDictMapper, ProcessSupport):
                 self.data[key] = value
 
     def save(self, callback=None):
-        if self.data is None:
+        if self.data is None and callback is None:
             return
 
-        data = self.apply_callback(callback, self.data, "Mapper.save方法的回调返回值不能为None")
+        self.make_sure_loaded()
+        data = callback(self.data)
 
         # write file
         with open(self.map_file_path, 'w', encoding='utf-8') as f:
