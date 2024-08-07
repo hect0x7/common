@@ -36,20 +36,16 @@ class QueueGenerator(ThreadFlagManager):
 
     def __iter__(self):
         while True:
-            try:
-                e = self.get_and_check_stop()
-                if e == self.end_element:
-                    return
-
-                self.done_element.append(e)
-                yield e
-
-                while self.is_giveback:
-                    self.is_giveback = False
-                    yield e
-
-            except queue.Empty:
+            e = self.get_and_check_stop()
+            if e == self.end_element:
                 return
+
+            self.done_element.append(e)
+            yield e
+
+            while self.is_giveback:
+                self.is_giveback = False
+                yield e
 
     def get_and_check_stop(self):
         while True:
@@ -58,9 +54,9 @@ class QueueGenerator(ThreadFlagManager):
                     return self.end_element
                 return self.q.get(block=False)
             except queue.Empty:
-                self.sleep_or_return(2)
                 if self.is_end:
                     return self.end_element
+                self.sleep_or_return(0.5)
 
     def remaining(self) -> int:
         return self.q.qsize()
