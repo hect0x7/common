@@ -1,5 +1,5 @@
 from .packer import Packer, JsonPacker, YmlPacker, PicklePacker, PackerUtil
-from genor import QueueGenerator
+from .genor import QueueGenerator
 from .registry import AtexitRegistry, ComponentRegistry, StopThreadFlag, ThreadFlagManager
 from .multi_task import MultiTaskLauncher, \
     multi_task_launcher, multi_thread_launcher, \
