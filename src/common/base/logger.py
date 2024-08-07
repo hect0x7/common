@@ -120,7 +120,7 @@ class LoggerImpl(AbstractSetLogger):
             return
 
         self.make_sure_loaded()
-        data = callback(self.data)
+        data = self.data if callback is None else callback(self.data)
 
         with open(self.log_file_path, 'w', encoding='utf-8') as f:
             for obj in data:

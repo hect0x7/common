@@ -172,7 +172,7 @@ class MapperImpl(AbstractDictMapper):
             return
 
         self.make_sure_loaded()
-        data = callback(self.data)
+        data = self.data if callback is None else callback(self.data)
 
         # write file
         with open(self.map_file_path, 'w', encoding='utf-8') as f:
