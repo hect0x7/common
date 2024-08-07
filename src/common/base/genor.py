@@ -1,4 +1,5 @@
 from common import Optional, Iterable, Callable
+
 from .hook import JudgeHook, ProcessHook
 
 

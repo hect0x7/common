@@ -22,7 +22,7 @@ def timeit(topic=None, print_template='耗时{:.02f}秒', loop_times=1):
 def thread(func):
     from threading import Thread
 
-    def thread_exec(*args, **kwargs):
+    def thread_exec(*args, **kwargs) -> Thread:
         t = Thread(target=func, args=args, kwargs=kwargs, daemon=True)
         t.start()
         return t
@@ -69,16 +69,16 @@ def field_cache(field_name=None, sentinel=None, obj=None):
     return wrapper
 
 
-def trycatch(ret):
+def trycatch(hook):
     def docorator(func):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except KeyboardInterrupt:
-                return ret
+                return hook()
             except BaseException:
                 from common import traceback_print_exec
-                return ret
+                return hook()
 
         return wrapper
 

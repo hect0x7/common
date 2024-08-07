@@ -109,3 +109,54 @@ class StopThreadFlag:
 
     def raise_stop_exception(self):
         raise KeyboardInterrupt
+
+
+class ThreadFlagManager:
+
+    def __init__(self, flag):
+        self.flag: StopThreadFlag = flag
+
+    def notice_stop_callback(self):
+        pass
+
+    def sleep_or_raise(self, duration: float):
+        from time import sleep
+        if duration < 0.1:
+            sleep(duration)
+
+        times = int(duration / 0.1)
+        for _ in range(times):
+            self.if_stop_raise()
+            sleep(0.1)
+
+        self.if_stop_raise()
+        sleep(duration - 0.1 * times)
+
+    def if_stop_raise(self):
+        if self.is_stop():
+            self.flag.raise_stop_exception()
+
+    def sleep_or_return(self, duration: float) -> bool:
+        """
+        :return: should stop
+        """
+        from time import sleep
+        if duration < 0.1:
+            sleep(duration)
+
+        times = int(duration / 0.1)
+        for _ in range(times):
+            if self.is_stop():
+                return True
+            sleep(0.1)
+
+        if self.is_stop():
+            return True
+        sleep(duration - 0.1 * times)
+        return False
+
+    def is_stop(self):
+        if self.flag.should_stop():
+            self.notice_stop_callback()
+
+        return self.flag.should_stop()

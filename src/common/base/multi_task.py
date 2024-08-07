@@ -1,5 +1,17 @@
+from typing import (
+    List,
+    Callable,
+    Iterable,
+    Optional,
+    Any,
+    Union,
+    Type,
+    Dict,
+    Tuple,
+    TypeVar
+)
+
 from ..util import Thread, Process, \
-    List, Callable, Iterable, Optional, Any, Union, Type, Dict, Tuple, \
     process_args_kwargs, process_single_arg_to_args_and_kwargs, \
     current_thread
 from .registry import StopThreadFlag
@@ -95,8 +107,8 @@ class MultiTaskLauncher:
 
 
 def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
-                        iter_objs: Iterable,
-                        apply_each_obj_func: Callable,
+                        iter_objs: Iterable[TypeVar('OBJ')],
+                        apply_each_obj_func: Callable[[TypeVar('OBJ')], Any],
                         wait_finish=True,
                         *,
                         batch_size: Optional[int] = None,
@@ -236,6 +248,7 @@ class CacheRunner(Thread):
             kwargs = {}
 
         def wrapper():
+            self._flag.mark_run()
             self._cache = target(*args, **kwargs)
             return
 

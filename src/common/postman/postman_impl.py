@@ -13,6 +13,11 @@ class RequestsPostman(AbstractPostman):
         from requests import post
         return post
 
+    def before_request(self, kwargs):
+        kwargs = super().before_request(kwargs)
+        kwargs.pop('impersonate', None)
+        return kwargs
+
 
 class RequestsSessionPostman(AbstractSessionPostman):
 
@@ -22,6 +27,11 @@ class RequestsSessionPostman(AbstractSessionPostman):
         if 'cookies' in kwargs:
             session.cookies = requests.sessions.cookiejar_from_dict(kwargs.pop('cookies'))
         return session
+
+    def before_request(self, kwargs):
+        kwargs = super().before_request(kwargs)
+        kwargs.pop('impersonate', None)
+        return kwargs
 
 
 class CurlCffiPostman(AbstractPostman):
@@ -53,12 +63,7 @@ class CurlCffiSessionPostman(AbstractSessionPostman):
 
 
 # help typing
-PostmanImplClazz = Union[
-    Type[CurlCffiPostman],
-    Type[CurlCffiSessionPostman],
-    Type[RequestsPostman],
-    Type[RequestsSessionPostman],
-]
+PostmanImplClazz = Type[Postman]
 
 
 class Postmans:
