@@ -15,7 +15,7 @@ def fix_windir_name(dn: str, attr_char='_') -> str:
     return ''.join(map(lambda c: attr_char if c in _win_forbid_char else c, dn))
 
 
-def fix_filepath(filepath: str) -> str:
+def fix_filepath(filepath: str, *args, **kwargs) -> str:
     """
     unix-style filepath
     """
