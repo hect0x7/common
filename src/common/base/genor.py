@@ -20,8 +20,8 @@ class QueueGenerator(ThreadFlagManager):
         self.flag.mark_run()
 
         self.q = queue.Queue()
-        self.total_element = []
-        self.done_element = []
+        self.total_element = set()
+        self.done_element = set()
 
         self.end_element = end_element
         self.is_giveback = False
@@ -40,7 +40,7 @@ class QueueGenerator(ThreadFlagManager):
             if e == self.end_element:
                 return
 
-            self.done_element.append(e)
+            self.done_element.add(e)
             yield e
 
             while self.is_giveback:
@@ -69,6 +69,8 @@ class QueueGenerator(ThreadFlagManager):
             self.is_end = True
             return
 
-        self.total_element.append(obj)
+        if obj in self.total_element:
+            return
+        self.total_element.add(obj)
         if self.filter_method(obj):
             self.q.put(obj)

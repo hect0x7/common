@@ -109,6 +109,7 @@ class Postman:
 
 
 class AbstractPostman(Postman):
+    postman_key = 'abstract'
 
     @classmethod
     def create(cls, **kwargs):
@@ -159,6 +160,7 @@ class AbstractPostman(Postman):
 
 
 class AbstractSessionPostman(AbstractPostman):
+    postman_key = 'abstract-session'
 
     def __init__(self, kwargs: dict) -> None:
         super().__init__(kwargs)

@@ -23,16 +23,21 @@ class ComponentRegistry:
     registry: Dict[Type, Dict[str, Type]] = {}
 
     @classmethod
-    def register_component(cls, interface: type, key_name: str, variables: Iterable):
+    def register_component(cls,
+                           interface: type,
+                           key_name: str,
+                           variables: Iterable,
+                           require_key=True,
+                           ):
         cls.registry.setdefault(interface, {})
         for clazz in variables:
             if isinstance(clazz, type) and clazz != interface and issubclass(clazz, interface):
                 try:
                     key = getattr(clazz, key_name)
+                    cls.registry[interface][key] = clazz
                 except AttributeError:
-                    raise AssertionError(f'register failed, {clazz} must have a "{key_name}" attribute')
-
-                cls.registry[interface][key] = clazz
+                    if require_key:
+                        raise AssertionError(f'register failed, {clazz} must have a "{key_name}" attribute')
 
         return cls.registry[interface]
 
@@ -45,7 +50,7 @@ class ComponentRegistry:
 
         clazz: Optional[Type[cls.__T]] = cls.registry[interface].get(key, None)
         if clazz is None:
-            raise AssertionError(f'key {key} not found in registry of {interface}')
+            raise AssertionError(f'key "{key}" not found in registry of {interface}')
 
         return clazz
 

@@ -83,6 +83,8 @@ class MultiTaskLauncher:
             task.join(timeout=0.1)
 
     def pause(self, duration: float):
+        if duration <= 0:
+            return
         from time import sleep
         if duration < 0.1:
             sleep(duration)
@@ -130,6 +132,7 @@ def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
                              )
         if batch_size is not None and (index + 1) % batch_size == 0:
             launcher.pause(pause_duration)
+            launcher.wait_finish()
 
     if wait_finish is True:
         launcher.wait_finish()

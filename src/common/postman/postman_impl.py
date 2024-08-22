@@ -1,9 +1,11 @@
 from typing import Type, Dict, Union
 
+from ..base import ComponentRegistry
 from .postman_api import *
 
 
 class RequestsPostman(AbstractPostman):
+    postman_key = 'requests'
 
     def __get__(self):
         from requests import get
@@ -20,6 +22,7 @@ class RequestsPostman(AbstractPostman):
 
 
 class RequestsSessionPostman(AbstractSessionPostman):
+    postman_key = 'requests-session'
 
     def create_session(self, kwargs):
         import requests
@@ -35,6 +38,7 @@ class RequestsSessionPostman(AbstractSessionPostman):
 
 
 class CurlCffiPostman(AbstractPostman):
+    postman_key = 'curl_cffi'
 
     def __init__(self, kwargs) -> None:
         super().__init__(kwargs)
@@ -49,6 +53,7 @@ class CurlCffiPostman(AbstractPostman):
 
 
 class CurlCffiSessionPostman(AbstractSessionPostman):
+    postman_key = 'curl_cffi_session'
 
     def create_session(self, kwargs):
         return self.new_cffi_session(kwargs)
@@ -67,22 +72,14 @@ PostmanImplClazz = Type[Postman]
 
 
 class Postmans:
-    postman_impl_class_dict: Dict[str, PostmanImplClazz] = {
-        'requests': RequestsPostman,
-        'requests_Session': RequestsSessionPostman,
-        'cffi': CurlCffiPostman,
-        'cffi_Session': CurlCffiSessionPostman,
-        'curl_cffi': CurlCffiPostman,
-        'curl_cffi_Session': CurlCffiSessionPostman,
-    }
 
     @classmethod
-    def get_impl_clazz(cls, key='requests') -> PostmanImplClazz:
-        return cls.postman_impl_class_dict[key]
+    def get_impl_clazz(cls, key):
+        return ComponentRegistry.get_impl_clazz(Postman, key)
 
     @classmethod
     def new_session(cls, **kwargs):
-        return cls.get_impl_clazz('curl_cffi_Session').create(**kwargs)
+        return cls.get_impl_clazz('curl_cffi_session').create(**kwargs)
 
     @classmethod
     def new_postman(cls, **kwargs):

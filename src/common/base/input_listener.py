@@ -48,6 +48,7 @@ class InputListenerThread(threading.Thread):
 
             # 已收到用户输入
             if user_input is not None:
-                return
+                return user_input
 
             print(self.msg)
+            timeout *= 1.5
