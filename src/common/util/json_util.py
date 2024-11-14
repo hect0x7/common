@@ -79,6 +79,10 @@ class AdvancedDict:
     def get(self, *args, **kwargs):
         return self._data.get(*args, **kwargs)
 
+    def pairs(self):
+        for k, v in self._data.items():
+            yield k, self.wrap_value(v)
+
     def items(self):
         return self._data.items()
 
@@ -145,7 +149,7 @@ class EasyAccessDict:
     def __init__(self, data: dict):
         self.init_data(data)
 
-    def init_data(self, data):
+    def init_data(self, data: dict):
         for k, v in data.items():
             if k is None:
                 continue
@@ -217,8 +221,7 @@ class AdvancedEasyAccessDict:
         return self._data.items()
 
 
-# 兼容旧版本
-DictModel = AdvancedEasyAccessDict
+DictModel = AdvancedDict
 
 
 def json_loadf(filepath,

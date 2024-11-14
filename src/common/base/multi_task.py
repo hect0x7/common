@@ -67,9 +67,6 @@ class MultiTaskLauncher:
             for task in self.task_ls:
                 self.wait_task(task)
         except KeyboardInterrupt:
-            from common import traceback_print_exec
-
-            traceback_print_exec()
             if self.flag:
                 self.flag.mark_stop_for_all()
             raise
@@ -120,7 +117,8 @@ def multi_task_launcher(clazz: Union[Type[Thread], Type[Process]],
                         ) -> MultiTaskLauncher:
     metadata.setdefault("daemon", True)
     launcher = MultiTaskLauncher(metadata)
-    launcher.flag = flag
+    if flag:
+        launcher.flag = flag
 
     for index, obj in enumerate(iter_objs):
         args, kwargs = process_single_arg_to_args_and_kwargs(obj)
@@ -145,7 +143,7 @@ def multi_thread_launcher(iter_objs: Iterable,
                           wait_finish=True,
                           batch_size: Optional[int] = None,
                           pause_duration=-1,
-                          flag: Optional[StopThreadFlag] = None,
+                          flag=None,
                           **metadata
                           ) -> MultiTaskLauncher:
     return multi_task_launcher(Thread,
@@ -164,6 +162,7 @@ def thread_pool_executor(
         apply_each_obj_func: Callable,
         wait_finish=True,
         max_workers=None,
+        flag=None,
 ):
     # copy from Python312\Lib\concurrent\futures\thread.py
     # 计算最大线程数
@@ -177,6 +176,8 @@ def thread_pool_executor(
     from queue import Queue
     q = Queue()
     launcher = MultiTaskLauncher.build_daemon()
+    if flag is not None:
+        launcher.flag = flag
     STOP = None
 
     def do_work():
@@ -194,7 +195,7 @@ def thread_pool_executor(
     def try_add_worker():
         num_threads = len(launcher)
         if num_threads < max_workers:
-            launcher.create_task(do_work, name=f'thread_pool_executor_{num_threads}')
+            launcher.create_task(do_work, name=f'{apply_each_obj_func}_thread_pool_executor_{num_threads}')
 
     # 向队列中添加任务并启动线程
     for obj in iter_objs:

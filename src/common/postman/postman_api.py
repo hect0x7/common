@@ -138,7 +138,7 @@ class AbstractPostman(Postman):
     def before_request(self, kwargs):
         return self.merge_kwargs(kwargs)
 
-    def merge_kwargs(self, kwargs):
+    def merge_kwargs(self, kwargs: dict):
         """
         把 kwargs 合并到 self.meta_data.copy()
         """
