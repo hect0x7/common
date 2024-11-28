@@ -51,6 +51,12 @@ class AdvancedDict:
             return super().__setattr__(key, value)
         self._data[key] = value
 
+    def __str__(self):
+        return self._data.__str__()
+
+    def __repr__(self):
+        return self._data.__repr__()
+
     def __setitem__(self, key, value):
         self._data[key] = value
 

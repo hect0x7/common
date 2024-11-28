@@ -195,7 +195,7 @@ def thread_pool_executor(
     def try_add_worker():
         num_threads = len(launcher)
         if num_threads < max_workers:
-            launcher.create_task(do_work, name=f'{apply_each_obj_func}_thread_pool_executor_{num_threads}')
+            launcher.create_task(do_work, name=f'{apply_each_obj_func.__name__}_thread_pool_executor_{num_threads}')
 
     # 向队列中添加任务并启动线程
     for obj in iter_objs:
