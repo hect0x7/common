@@ -1,6 +1,7 @@
 from json import load, loads, dump, dumps
 
 from .typing_util import *
+import copy
 
 json_loads = loads
 json_load = load
@@ -76,6 +77,23 @@ class AdvancedDict:
 
     # 代理dict的方法
 
+    def __deepcopy__(self, memo=None):
+        """
+        自定义深拷贝方法
+        """
+        if memo is None:
+            memo = {}
+        # 确保自定义对象的深拷贝不出现递归引用
+        if id(self) in memo:
+            return memo[id(self)]
+
+        # 递归深拷贝 _data 字典
+        new_data = copy.deepcopy(self._data, memo)
+        # 创建一个新的 AdvancedDict 实例，并返回
+        copied_object = AdvancedDict(new_data)
+        memo[id(self)] = copied_object
+        return copied_object
+    
     def __contains__(self, item):
         return item in self._data
 
