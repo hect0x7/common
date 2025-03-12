@@ -35,6 +35,7 @@ class QueueGenerator(ThreadFlagManager):
         return len(self.done_element) + self.q.qsize()
 
     def __iter__(self):
+        self.flag.mark_run()
         while True:
             e = self.get_and_check_stop()
             if e == self.end_element:
@@ -72,5 +73,8 @@ class QueueGenerator(ThreadFlagManager):
         if obj in self.total_element:
             return
         self.total_element.add(obj)
-        if self.filter_method(obj):
+        if self.filter_method is None or self.filter_method(obj):
             self.q.put(obj)
+
+    def close(self):
+        self.put(self.end_element)

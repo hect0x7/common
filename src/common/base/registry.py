@@ -66,6 +66,7 @@ class StopThreadFlag:
     def __init__(self, key):
         self.key = key
         self._marked = set()
+        self._all_stop = False
 
     @property
     def marked_thread_set(self):
@@ -74,17 +75,13 @@ class StopThreadFlag:
     def should_stop(self, thread=None):
         thread = thread or current_thread()
         try:
-            return self.STOP == getattr(thread, self.key)
+            return self._all_stop or self.STOP == getattr(thread, self.key)
         except AttributeError:
-            import sys
-            sys.stderr.write(
-                f"{self.key} is not set for thread [{thread}], "
-                f"current thread: [{current_thread()}]\n"
-            )
+            self.mark_run()
 
     def mark_run(self, thread=None):
         thread = thread or current_thread()
-        if getattr(thread, self.key, None) == self.STOP:
+        if self._all_stop or getattr(thread, self.key, None) == self.STOP:
             import sys
             sys.stderr.write(
                 f"{self.key} is already set STOP for thread: [{thread}], "
@@ -103,6 +100,7 @@ class StopThreadFlag:
     def mark_stop_for_all(self):
         for thread in self._marked:
             self.mark_stop(thread)
+            self._all_stop = True
 
     def wait_for_all(self):
         for thread in self.marked_thread_set:

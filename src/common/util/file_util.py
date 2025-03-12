@@ -129,7 +129,7 @@ def create_file(filepath: str):
 
 def files_of_dir(abs_dir_path: str) -> List[str]:
     abs_dir_path = fix_filepath(os.path.abspath(abs_dir_path))
-    return [f'{abs_dir_path}{f_or_d}' for f_or_d in os.listdir(abs_dir_path)]
+    return [f'{abs_dir_path}{f_or_d}' for f_or_d in sorted(os.listdir(abs_dir_path))]
 
 
 def accept_files_of_dir(abs_dir_path: str, acceptor: Callable[[str, str, int], None]):
