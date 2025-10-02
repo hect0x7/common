@@ -63,7 +63,9 @@ class RetryPostman(PostmanProxy):
 
         for i in range(retry_times):
             try:
-                return request(url, **kwargs)
+                resp = request(url, **kwargs)
+                self.accept_resp_or_raise(resp)
+                return resp
             except KeyboardInterrupt as e:
                 raise e
             except Exception as e:
@@ -91,6 +93,9 @@ class RetryPostman(PostmanProxy):
 
     def copy(self):
         return self.__class__(self.postman.copy(), self.retry_times)
+
+    def accept_resp_or_raise(self, resp):
+        pass
 
 
 class MultiPartPostman(PostmanProxy):

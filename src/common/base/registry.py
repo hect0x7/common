@@ -111,7 +111,7 @@ class StopThreadFlag:
                 thread.join(timeout=1)
 
     def raise_stop_exception(self):
-        raise KeyboardInterrupt
+        raise KeyboardInterrupt(f'thread: {current_thread()}')
 
     def sleep_or_raise(self, duration: float):
         from time import sleep

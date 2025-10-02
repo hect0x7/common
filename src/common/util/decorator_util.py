@@ -69,7 +69,7 @@ def field_cache(field_name=None, sentinel=None, obj=None):
     return wrapper
 
 
-def trycatch(hook):
+def trycatch(hook=lambda: None):
     def decorator(func):
         def wrapper(*args, **kwargs):
             try:
@@ -78,6 +78,7 @@ def trycatch(hook):
                 return hook()
             except BaseException:
                 from common import traceback_print_exec
+                traceback_print_exec()
                 return hook()
 
         return wrapper

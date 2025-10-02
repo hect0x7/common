@@ -1,5 +1,3 @@
-import os
-
 from .typing_util import *
 
 _win_forbid_char = [char for char in '\\/:*?"<>|\n\t\r']
@@ -12,7 +10,10 @@ def fix_windir_name(dn: str, attr_char='_') -> str:
     @param attr_char: 非法字符替换为
     @return: 合法文件夹名
     """
-    return ''.join(map(lambda c: attr_char if c in _win_forbid_char else c, dn))
+    name = ''.join(map(lambda c: attr_char if c in _win_forbid_char else c, dn))
+    if name.endswith('.'):
+        name = name.rstrip('.')
+    return name
 
 
 def fix_filepath(filepath: str, *args, **kwargs) -> str:

@@ -70,11 +70,13 @@ class QueueGenerator(ThreadFlagManager):
             self.is_end = True
             return
 
+        can_use = self.filter_method is None or self.filter_method(obj)
+        if not can_use:
+            return
         if obj in self.total_element:
             return
         self.total_element.add(obj)
-        if self.filter_method is None or self.filter_method(obj):
-            self.q.put(obj)
+        self.q.put(obj)
 
     def close(self):
         self.put(self.end_element)

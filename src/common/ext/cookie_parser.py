@@ -56,6 +56,19 @@ class ChromePluginCookieParser(CookieParser):
     def __init__(self, required_word_for_cookies_str: Set[str] = None):
         self.required_word = self.default_required.union(required_word_for_cookies_str or set())
 
+    def copy_cookies_to_clip(self, cookies):
+        import_cookies = []
+        for k, v in cookies.items():
+            import_cookies.append({
+                "name": k,
+                "value": v,
+                'session': False,
+            })
+        from common import json_dumps, copy_to_clip
+
+        imports = json_dumps(import_cookies, indent=2)
+        copy_to_clip(imports)
+
     def check_cookies_str_is_valid(self, cookies_str: str) -> bool:
         if cookies_str == '':
             return False
