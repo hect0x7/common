@@ -30,12 +30,14 @@ class ProxyBuilder:
         if len(proxies) == 0:
             return {}
 
-        # extract ip and port from proxies dict
-        addr: str = proxies.popitem()[1]
+        # 优先使用 http 或 https 代理
+        addr = proxies.get('http') or proxies.get('https')
+        if addr is None:
+            return {}
+
         prot = '://'
-        index = addr.find(prot)
         if prot in addr:
-            addr = addr[index + len(prot):]
+            addr = addr[addr.find(prot) + len(prot):]
 
         return cls.build_proxy(addr)
 
